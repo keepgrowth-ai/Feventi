@@ -26,7 +26,7 @@ aceptación verificables, después el código.
 | # | Feature | Estado |
 |---|---|---|
 | 001 | Fundaciones: auth, perfiles, roles, tenencia, RLS base | ✅ **listo** — 43 comprobaciones en verde |
-| 007 | Solicitud de evento y aprobación | spec listo |
+| 007 | Solicitud de evento y aprobación | ✅ **listo** — 32 comprobaciones + concurrencia |
 | 003 | Detalle de evento: zonas, segmentos, fases, precios | spec listo |
 | 002 | Catálogo público | spec listo |
 | 004 | Checkout y emisión de tickets | spec listo |

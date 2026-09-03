@@ -12,6 +12,23 @@
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+/** Los seis ítems del checklist de revisión (007). Forma garantizada por un CHECK. */
+export type ReviewChecklist = Record<
+  | 'datos_generales'
+  | 'organizador_ruc'
+  | 'venue_plano'
+  | 'fechas_funciones'
+  | 'zonas_fases'
+  | 'cortesias_bolsas',
+  'ok' | 'pending' | 'na'
+>;
+
+/** Un tramo de la política de liquidación declarada (007). Fase 2 lo hace real. */
+export interface PayoutTranche {
+  readonly pct: number;
+  readonly trigger: string;
+}
+
 export type Database = {
   __InternalSupabase: { PostgrestVersion: '14.5' };
   public: {
@@ -196,9 +213,189 @@ export type Database = {
           },
         ];
       };
+      venues: {
+        Row: {
+          id: string;
+          name: string;
+          city: string;
+          address: string | null;
+          capacity: number | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          city: string;
+          address?: string | null;
+          capacity?: number | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          city?: string;
+          address?: string | null;
+          capacity?: number | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      events: {
+        Row: {
+          id: string;
+          code: string;
+          organizer_id: string;
+          venue_id: string | null;
+          slug: string | null;
+          title: string | null;
+          description: string | null;
+          category: string | null;
+          hero_image_url: string | null;
+          starts_at: string | null;
+          doors_at: string | null;
+          timezone: string;
+          status: Database['public']['Enums']['event_status'];
+          visibility: Database['public']['Enums']['event_visibility'];
+          capacity: number | null;
+          max_per_user: number;
+          resale_enabled: boolean;
+          max_resales: number;
+          resale_commission_bps: number;
+          service_charge_bps: number;
+          service_charge_payer: Database['public']['Enums']['charge_payer'];
+          qr_lead_days: number;
+          nomination_mode: Database['public']['Enums']['nomination_mode'];
+          payout_policy: Json;
+          review_checklist: Json;
+          featured_at: string | null;
+          submitted_at: string | null;
+          approved_at: string | null;
+          published_at: string | null;
+          paused_at: string | null;
+          cancelled_at: string | null;
+          created_by: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          code?: string;
+          organizer_id: string;
+          venue_id?: string | null;
+          slug?: string | null;
+          title?: string | null;
+          description?: string | null;
+          category?: string | null;
+          hero_image_url?: string | null;
+          starts_at?: string | null;
+          doors_at?: string | null;
+          timezone?: string;
+          status?: Database['public']['Enums']['event_status'];
+          visibility?: Database['public']['Enums']['event_visibility'];
+          capacity?: number | null;
+          max_per_user?: number;
+          resale_enabled?: boolean;
+          max_resales?: number;
+          resale_commission_bps?: number;
+          service_charge_bps?: number;
+          service_charge_payer?: Database['public']['Enums']['charge_payer'];
+          qr_lead_days?: number;
+          nomination_mode?: Database['public']['Enums']['nomination_mode'];
+          payout_policy?: Json;
+          review_checklist?: Json;
+          featured_at?: string | null;
+          submitted_at?: string | null;
+          approved_at?: string | null;
+          published_at?: string | null;
+          paused_at?: string | null;
+          cancelled_at?: string | null;
+          created_by?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['events']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'events_organizer_id_fkey';
+            columns: ['organizer_id'];
+            isOneToOne: false;
+            referencedRelation: 'organizers';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'events_venue_id_fkey';
+            columns: ['venue_id'];
+            isOneToOne: false;
+            referencedRelation: 'venues';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      event_review_notes: {
+        Row: {
+          id: string;
+          event_id: string;
+          actor_id: string | null;
+          action: Database['public']['Enums']['review_action'];
+          note: string | null;
+          checklist_snapshot: Json | null;
+          status_before: Database['public']['Enums']['event_status'] | null;
+          status_after: Database['public']['Enums']['event_status'] | null;
+          internal: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          actor_id?: string | null;
+          action: Database['public']['Enums']['review_action'];
+          note?: string | null;
+          checklist_snapshot?: Json | null;
+          status_before?: Database['public']['Enums']['event_status'] | null;
+          status_after?: Database['public']['Enums']['event_status'] | null;
+          internal?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['event_review_notes']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'event_review_notes_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: { [_ in never]: never };
     Functions: {
+      create_event: { Args: { p_organizer_id: string; p_title?: string }; Returns: string };
+      submit_event: { Args: { p_event_id: string }; Returns: undefined };
+      approve_event: { Args: { p_event_id: string; p_note?: string }; Returns: undefined };
+      reject_event: { Args: { p_event_id: string; p_note: string }; Returns: undefined };
+      request_event_info: {
+        Args: { p_event_id: string; p_note: string; p_checklist?: Json };
+        Returns: undefined;
+      };
+      set_event_checklist: {
+        Args: { p_event_id: string; p_checklist: Json };
+        Returns: undefined;
+      };
+      publish_event: { Args: { p_event_id: string }; Returns: undefined };
+      pause_event: { Args: { p_event_id: string; p_note?: string }; Returns: undefined };
+      resume_event: { Args: { p_event_id: string; p_note?: string }; Returns: undefined };
+      cancel_event: { Args: { p_event_id: string; p_note: string }; Returns: undefined };
+      set_event_featured: {
+        Args: { p_event_id: string; p_featured: boolean };
+        Returns: undefined;
+      };
       create_organizer: {
         Args: {
           p_legal_name: string;
@@ -236,6 +433,29 @@ export type Database = {
       app_role: 'fan' | 'organizer' | 'staff' | 'admin';
       organizer_role: 'owner' | 'admin' | 'viewer';
       organizer_status: 'draft' | 'pending' | 'approved' | 'rejected' | 'suspended';
+      charge_payer: 'fan' | 'organizer';
+      nomination_mode: 'strict' | 'flexible';
+      event_visibility: 'public' | 'unlisted' | 'private';
+      event_status:
+        | 'draft'
+        | 'pending_review'
+        | 'changes_requested'
+        | 'rejected'
+        | 'approved'
+        | 'setup'
+        | 'published'
+        | 'paused'
+        | 'cancelled'
+        | 'finished';
+      review_action:
+        | 'submitted'
+        | 'info_requested'
+        | 'approved'
+        | 'rejected'
+        | 'published'
+        | 'paused'
+        | 'cancelled'
+        | 'note';
     };
     CompositeTypes: { [_ in never]: never };
   };
@@ -247,6 +467,31 @@ export const Constants = {
       app_role: ['fan', 'organizer', 'staff', 'admin'],
       organizer_role: ['owner', 'admin', 'viewer'],
       organizer_status: ['draft', 'pending', 'approved', 'rejected', 'suspended'],
+      charge_payer: ['fan', 'organizer'],
+      nomination_mode: ['strict', 'flexible'],
+      event_visibility: ['public', 'unlisted', 'private'],
+      event_status: [
+        'draft',
+        'pending_review',
+        'changes_requested',
+        'rejected',
+        'approved',
+        'setup',
+        'published',
+        'paused',
+        'cancelled',
+        'finished',
+      ],
+      review_action: [
+        'submitted',
+        'info_requested',
+        'approved',
+        'rejected',
+        'published',
+        'paused',
+        'cancelled',
+        'note',
+      ],
     },
   },
 } as const;

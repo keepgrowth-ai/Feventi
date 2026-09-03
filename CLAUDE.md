@@ -33,7 +33,17 @@ spec.md  →  plan.md  →  tasks.md  →  migración  →  test RLS  →  tipos
 - **`(select auth.uid())`**, no `auth.uid()`, dentro de una política. Envuelto, el
   planner lo evalúa una vez como InitPlan en lugar de una vez por fila.
 - **Una sola política por operación y rol**, con los casos unidos por `OR` y el caso
-  común primero. Dos políticas permisivas se evalúan las dos, siempre.
+  común primero. Dos políticas permisivas se evalúan las dos, siempre. Y **`for all`
+  cuenta como cuatro operaciones**, SELECT incluido: se solapa con la política de
+  lectura sin que se note.
+- **Una transición de estado va en una RPC, no en una política.** Una política dice
+  «puede tocar esta fila»; no dice «de `draft` puede ir a `pending_review` pero no a
+  `published`». Y la RPC bloquea la fila con `select … for update` antes de comprobar
+  el estado de origen: dos personas decidiendo a la vez es un caso real.
+- **`plpgsql` no valida el cuerpo al crear la función.** Compila con un nombre
+  inexistente dentro y falla la primera vez que se ejecuta — al contrario de
+  `language sql`, que sí valida. Una RPC en plpgsql no está verificada hasta que una
+  prueba la llama.
 - **El rol no se lee del cliente.** Sale de `user_roles` / `organizer_members` /
   `event_staff` vía helper `security definer` en el schema `private`.
 - **Un `revoke` de columna no recorta un `grant` de tabla.** Si hay que esconder un

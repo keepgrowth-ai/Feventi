@@ -82,8 +82,10 @@ verificado además de extremo a extremo contra la Auth API y PostgREST reales.
 - [ ] T-34 Subir **minimum password length a 12** y exigir minúsculas + mayúsculas +
       dígitos, en Authentication → Sign In / Providers → Email. No se puede por MCP
       ni por SQL.
-- [ ] T-35 **Respaldar el pepper del DNI fuera de Supabase** — gestor de contraseñas o
-      bóveda de secretos, nunca el repo. Hacerlo **ahora que no hay datos**:
+- [x] T-35 **Respaldar el pepper del DNI fuera de Supabase** — hecho el 2026-09-03,
+      copia en el gestor de contraseñas del equipo. Queda **D-51** por decidir: quién
+      más puede recuperarla. Comando usado, desde el SQL Editor del panel (no desde
+      bash: `!` corre shell, no SQL):
       ```sql
       select decrypted_secret from vault.decrypted_secrets where name = 'dni_pepper';
       ```
