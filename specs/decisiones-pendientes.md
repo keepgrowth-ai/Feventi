@@ -65,3 +65,5 @@ Estado: `abierta` · `cerrada (fecha)` · `diferida a Fase N`
 | D-47 | Proceso de apelación del organizador ante una retención |
 | D-48 | Validaciones legales y contables previas a cobrar dinero real |
 | D-49 | Protocolo de contingencia en puerta (caída de red, caída de Feventi) |
+| D-50 | Plan de Supabase. **Leaked password protection** (chequeo contra HaveIBeenPwned) exige **Pro**; en free no existe el interruptor. Mientras tanto: longitud mínima 12 y caracteres exigidos. Decidir antes de abrir registro a usuarios reales. |
+| D-51 | Custodia del **pepper del DNI**. Quién guarda la copia, dónde, y quién puede recuperarla. Sin copia, perder el proyecto o restaurar un backup viejo invalida todos los `dni_hash` y obliga a que cada usuario re-declare su documento. Ver **D-10** y T-35. |

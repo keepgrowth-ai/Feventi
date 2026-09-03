@@ -79,6 +79,18 @@ verificado además de extremo a extremo contra la Auth API y PostgREST reales.
 
 ## Queda fuera, y es de quien tenga acceso al panel
 
-- [ ] T-34 Activar **leaked password protection** en Authentication → Policies. No se
-      puede tocar por MCP ni por SQL. Sin esto, Supabase Auth acepta contraseñas ya
-      filtradas. Anotado en `specs/advisor-baseline.md`.
+- [ ] T-34 Subir **minimum password length a 12** y exigir minúsculas + mayúsculas +
+      dígitos, en Authentication → Sign In / Providers → Email. No se puede por MCP
+      ni por SQL.
+- [ ] T-35 **Respaldar el pepper del DNI fuera de Supabase** — gestor de contraseñas o
+      bóveda de secretos, nunca el repo. Hacerlo **ahora que no hay datos**:
+      ```sql
+      select decrypted_secret from vault.decrypted_secrets where name = 'dni_pepper';
+      ```
+      Si el pepper se pierde no se puede re-derivar (haría falta el DNI original, que
+      a propósito no se guarda) y todos los `dni_hash` quedan inservibles: se rompen la
+      nominación y el modo DNI en puerta. Recuperación: cada usuario vuelve a declarar
+      su DNI. Ver **D-10**.
+- [ ] T-36 **Leaked password protection** — requiere plan **Pro**; la organización está
+      en free y el interruptor no existe. Requisito de producción, no de desarrollo.
+      Ver **D-50** y `specs/advisor-baseline.md`.
