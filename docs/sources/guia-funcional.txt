@@ -1,0 +1,1184 @@
+FEVENTI · GUÍA DE PRODUCTO
+
+Guía explicativa funcional
+de Feventi
+
+Versión de lectura basada en 16_FUNCTIONAL_AUDIT.md y en
+el avance funcional del proyecto. No incluye el Manifest. Está
+escrita para entender cada parte de Feventi antes de diseñar o
+construir.
+
+Enfoque                         Estado
+                                Guía funcional; no representa
+Producto, experiencia,          implementación real completa.
+módulos, pestañas y
+conexiones.
+
+Proyecto                        Fecha
+Feventi - ticketera B2B2C para  7 de julio de 2026.
+eventos.
+
+Documento preparado para lectura tranquila y para servir como base de conversación
+con diseño, Codex y Claude.
+Índice de lectura
+
+1. Qué es Feventi                               2. Dirección visual
+Visión general y cinco mundos del producto.     Modo fan, modo operación y modo scanner.
+
+3. Mapa general                                 4. Página pública
+Módulos y pestañas principales.                 Home, catálogo, detalle, compra, reventa y
+                                                cortesía.
+
+5. Fan                                          6. Organizador
+Wallet, QR, grupos, FanPass, álbum, soporte y   Eventos, zonas, ventas, staff, cortesías,
+privacidad.                                     promotores y finanzas.
+
+7. Staff                                        8. Admin
+Mis eventos, scanner, historial e incidencias.  Aprobación, operación, pagos, soporte, riesgo y
+                                                liquidación.
+
+9. Funciones transversales                      10-13. Pendientes y prioridades
+Cómo se conectan Wallet, QR, soporte, reventa   Qué falta decidir, qué diseñar primero y
+y más.                                          próximos pasos.
+
+Feventi - Guia explicativa funcional | Pagina 2 de 31
+Guía explicativa funcional de Feventi
+
+Cómo leer esta guía
+
+Esta guía explica Feventi como producto, no como código. Está pensada para que Dett, un diseñador web,
+Codex, Claude o cualquier persona nueva del equipo pueda entender rápidamente qué es Feventi, qué partes
+tiene, quién usa cada parte y cómo se conectan los módulos entre sí.
+No reemplaza los documentos técnicos. Tampoco dice que algo ya esté implementado. Su objetivo es ordenar
+la experiencia del producto antes de diseñar pantallas finales o pasar a construcción.
+Estado actual del proyecto: Feventi sigue en etapa de preparación técnica y diseño funcional. Hay
+documentación, decisiones, prototipos y dirección visual, pero no debe asumirse que existe una aplicación
+productiva completa.
+
+Leyenda de estado
+
+   • Decisión tomada: comportamiento o dirección ya aceptada para Feventi.
+   • Pendiente de confirmar: punto que todavía necesita decisión de Dett antes de tratarlo como regla final.
+   • Propuesta funcional: forma recomendada de ordenar una experiencia o pantalla.
+   • Implementación real: algo que ya existe en la app. En esta guía, salvo que se indique lo contrario, debe
+
+     asumirse que todavía no hay implementación real operativa.
+   • Diseño prioritario: pantalla o flujo que conviene diseñar primero para entender el MVP.
+
+1. Qué es Feventi
+
+Feventi es una ticketera web B2B2C para eventos. Su punto de partida es vender entradas de forma segura,
+pero la visión es más amplia: acompañar la experiencia completa del evento, desde el descubrimiento hasta
+el recuerdo posterior.
+En simple:
+Feventi permite descubrir eventos, comprar entradas, guardarlas en una wallet, mostrar un QR seguro
+en puerta, coordinar con amigos, gestionar reventa oficial, manejar cortesías, resolver soporte y
+ayudar al organizador a operar mejor.
+No debe verse solo como una página para pagar. Debe entenderse como una plataforma de confianza para
+fans, organizadores, staff de puerta y equipo interno de Feventi.
+
+                                                      Feventi - Guia explicativa funcional | Pagina 3 de 31
+Los cinco mundos de Feventi
+
+Feventi se entiende mejor separándolo en cinco mundos:
+ 1. Página pública: donde cualquier persona descubre eventos y decide comprar.
+ 2. Fan / Usuario: quien compra, guarda sus entradas, coordina con amigos y asiste.
+ 3. Organizador / Productor: quien crea, configura y opera eventos.
+ 4. Staff de puerta: quien valida entradas con QR durante el evento.
+ 5. Admin Feventi: equipo interno que aprueba, supervisa, resuelve problemas y protege el dinero.
+
+Recorrido central del producto
+
+El recorrido principal debería sentirse así:
+Visitante entra a Feventi -> descubre un evento -> revisa detalle -> compra solo o con amigos -> recibe
+entrada en Wallet -> muestra QR en puerta -> entra al evento -> gana puntos o beneficios -> puede ver
+recuerdos del evento después.
+En paralelo:
+Organizador crea evento -> Feventi revisa -> evento se publica -> se venden entradas -> staff valida
+accesos -> Feventi supervisa pagos, soporte y riesgos -> organizador recibe liquidación.
+
+2. Dirección visual general
+
+La guía funcional también debe servir para diseño. Por eso, la experiencia visual se divide en dos grandes
+modos.
+
+Modo Fan / Público
+
+Debe sentirse:
+   • blanco y pastel como base;
+   • juvenil, moderno y cercano;
+   • con gradientes derivados del logo coral -> violeta -> turquesa;
+   • enfocado en explorar, comprar, compartir y guardar entradas;
+   • mobile-first;
+   • con cards visuales, tickets digitales y botones claros.
+
+Este modo aplica a:
+   • Home;
+   • Catálogo;
+
+                                                      Feventi - Guia explicativa funcional | Pagina 4 de 31
+   • Detalle del evento;
+   • Compra;
+   • Wallet;
+   • Perfil;
+   • Grupos;
+   • FanPass;
+   • Álbum del evento.
+
+Modo Operación
+
+Debe sentirse:
+   • más profesional;
+   • claro y ordenado;
+   • con sidebar morado oscuro;
+   • con cards blancas;
+   • con tablas, métricas, estados y alertas;
+   • sin perder identidad visual de Feventi.
+
+Este modo aplica a:
+   • Panel organizador;
+   • Panel admin;
+   • Reportes;
+   • Soporte;
+   • Finanzas;
+   • Revisión de solicitudes.
+
+Modo Puerta / Scanner
+
+Debe ser operativo, no decorativo.
+Debe priorizar:
+
+   • lectura rápida;
+   • alto contraste;
+   • botones grandes;
+   • resultado verde/rojo/ámbar a pantalla completa;
+   • mínima distracción;
+   • uso en celular bajo presión.
+
+                                                      Feventi - Guia explicativa funcional | Pagina 5 de 31
+3. Mapa general de módulos y pestañas
+
+Mundo    Uso principal                  Pestañas o secciones principales
+
+Página   Descubrir y convertir          Home, Catálogo, Detalle, Compra, Reventa oficial, Reclamar cortesía, Álbum
+pública  visitantes en compradores      público
+
+Fan      Comprar, guardar, coordinar y Inicio, Explorar, Wallet, Grupos y amigos, FanPass, Álbum, Soporte, Perfil
+
+         asistir
+
+Organizador Crear y operar eventos      Resumen, Solicitudes, Eventos, Zonas/precios, Ventas, Staff, Cortesías,
+                                        Promotores, Comunidad/Álbum, Finanzas, Soporte
+
+Staff    Validar acceso en puerta       Mis eventos, Scanner, Historial, Incidencias
+
+Admin    Supervisar, aprobar, proteger  Resumen, Solicitudes, Eventos, Usuarios, Pagos/tickets, Accesos en vivo,
+Feventi  y resolver                     Reventa, Cortesías, Promotores, FanPass, Comunidad, Soporte, Finanzas
+
+4. Mundo público
+
+El mundo público es la cara abierta de Feventi. Debe convertir a alguien que todavía no conoce el evento en
+una persona que entiende qué se vende, cuánto cuesta, qué reglas aplican y por qué puede confiar en
+Feventi.
+
+Home
+
+La Home debe explicar rápidamente qué es Feventi y mostrar eventos relevantes.
+Qué debe mostrar:
+
+   • logo y navegación simple;
+   • buscador visible;
+   • evento destacado;
+   • categorías;
+   • eventos próximos;
+   • llamada a explorar eventos;
+   • acceso para iniciar sesión;
+   • acceso para organizadores.
+Objetivo: que el usuario entienda que Feventi es una plataforma para eventos y pueda pasar al catálogo o a
+un evento destacado sin fricción.
+Conecta con: Catálogo, Detalle del evento, Registro/Login y Solicitud como organizador.
+
+                                                      Feventi - Guia explicativa funcional | Pagina 6 de 31
+Pendiente: definir qué criterios hacen que un evento aparezca destacado: fecha, popularidad, categoría,
+campañas pagadas o curaduría Feventi.
+
+Catálogo
+
+El catálogo permite explorar eventos y comparar opciones.
+Qué debe mostrar:
+
+   • lista de eventos;
+   • filtros por fecha, categoría, ciudad y precio;
+   • cards con imagen, fecha, lugar, precio desde y estado de venta;
+   • señales de disponibilidad;
+   • diferenciación entre venta oficial y reventa si aplica.
+
+Acciones: buscar, filtrar, ordenar, abrir detalle y compartir evento.
+Conecta con: Detalle del evento, Mercado de reventa y Login si el usuario intenta acciones que requieren
+cuenta.
+Riesgo de confusión: el usuario puede creer que el precio “desde” es el precio total final. Por eso, desde
+catálogo debe quedar claro que pueden existir cargos, fases o condiciones.
+
+Detalle del evento
+
+Es la pantalla pública más importante para conversión.
+Qué debe mostrar:
+
+   • imagen o video principal;
+   • nombre del evento;
+   • fecha y hora;
+   • lugar;
+   • descripción;
+   • organizador;
+   • zonas, precios y disponibilidad;
+   • reglas del evento;
+   • beneficios FanPass si existen;
+   • señales sociales permitidas;
+   • hashtag oficial si el evento tendrá álbum;
+   • botón claro de compra.
+
+Acciones: comprar, crear grupo de compra, marcar interés, compartir, ver reventa oficial, ver álbum si el
+evento ya pasó.
+Conecta con: Compra, Grupos, Reventa, Álbum, Perfil/Login y Soporte.
+
+                                                      Feventi - Guia explicativa funcional | Pagina 7 de 31
+Decisión de diseño: el detalle debe sentirse como una landing de venta, no como una ficha fría. La
+información legal y de reglas debe estar presente, pero no debe tapar la acción principal.
+
+Compra
+
+La compra debe ser breve, clara y segura.
+Qué debe permitir:
+
+   • elegir zona o asiento;
+   • elegir cantidad;
+   • asignar asistentes si aplica;
+   • iniciar o unirse a grupo de compra;
+   • ver precio base, cargos, descuentos y total;
+   • aceptar términos;
+   • pagar.
+
+Estados esperados:
+   • selección activa;
+   • reserva temporal;
+   • pago en proceso;
+   • pago confirmado;
+   • pago fallido;
+   • reserva expirada;
+   • compra grupal confirmada;
+   • compra grupal fallida.
+
+Conecta con: Detalle del evento, Login, Wallet, Soporte y Grupos.
+Regla central: no debe comunicarse que existe entrada válida hasta que el pago esté confirmado.
+
+Reventa oficial pública
+
+La reventa oficial debe estar separada de la venta primaria para evitar confusión.
+Qué debe mostrar:
+
+   • que se trata de una reventa oficial protegida por Feventi;
+   • evento asociado;
+   • zona o asiento;
+   • precio permitido;
+   • cargos;
+   • condiciones;
+   • explicación de que el QR anterior se invalida y el nuevo comprador obtiene una credencial segura.
+
+                                                      Feventi - Guia explicativa funcional | Pagina 8 de 31
+Conecta con: Detalle del evento, Compra, Wallet y Soporte.
+Pendiente: definir orden de publicaciones, límites de precio y mensajes de retención de dinero al vendedor.
+
+Reclamar cortesía
+
+Sirve para convertir un código o enlace de invitación en una entrada dentro de la Wallet.
+Qué debe mostrar:
+
+   • campo para código;
+   • evento asociado;
+   • vencimiento;
+   • condiciones;
+   • necesidad de cuenta Feventi;
+   • estados de código válido, usado, vencido, revocado o agotado.
+Regla importante: el código de cortesía no debe ser el QR de ingreso. Sirve para reclamar una entrada.
+Conecta con: Login, Wallet y Soporte.
+
+Álbum público
+
+Es una función social para eventos pasados, si el evento lo permite.
+Qué puede mostrar:
+
+   • fotos del evento;
+   • hashtag oficial;
+   • momentos destacados;
+   • fotos públicas agregadas;
+   • opción de compartir;
+   • reportar contenido.
+Pendiente importante: confirmar si el álbum entra al MVP o si queda como fase posterior. También falta
+decidir si será público, solo para asistentes o mixto.
+
+5. Mundo del Fan
+
+El fan es el centro de la experiencia de consumo. Para él, Feventi debe sentirse como una app donde puede
+descubrir eventos, comprar fácil, guardar entradas y coordinar con amigos.
+
+                                                      Feventi - Guia explicativa funcional | Pagina 9 de 31
+Inicio del Fan
+
+Debe ser una pantalla resumen.
+Qué muestra:
+
+   • próximo evento;
+   • entradas activas;
+   • grupos pendientes;
+   • alertas;
+   • recomendaciones;
+   • puntos o beneficios;
+   • accesos rápidos.
+
+Acciones: abrir Wallet, explorar, retomar compra, revisar grupo, ver alerta o pedir ayuda.
+Conecta con: Explorar, Wallet, Grupos, FanPass y Soporte.
+Pendiente: decidir si Inicio y Explorar serán pestañas distintas o si se fusionan en una experiencia única.
+
+Explorar
+
+Permite descubrir eventos desde la cuenta del fan.
+Diferencia con catálogo público: aquí puede haber personalización: eventos donde van amigos,
+recomendaciones por interés, beneficios FanPass y señales sociales.
+Acciones: buscar, filtrar, marcar interés, compartir, crear grupo de compra y abrir evento.
+Conecta con: Detalle del evento, Grupos, FanPass y Wallet.
+
+Wallet / Mis entradas
+
+La Wallet es una de las pantallas más importantes de Feventi.
+Debe ser el lugar donde el fan ve todas sus entradas y entiende qué puede hacer con cada una.
+Qué muestra:
+
+   • entradas activas;
+   • próximos eventos;
+   • entradas pasadas;
+   • estado de cada ticket;
+   • zona o asiento;
+   • titularidad;
+   • asistente asignado si aplica;
+   • QR cuando esté habilitado;
+   • acciones disponibles.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 10 de 31
+Acciones posibles:
+   • mostrar QR;
+   • nominar asistente;
+   • transferir/regalar;
+   • publicar en reventa;
+   • donar si esa función se confirma;
+   • pedir soporte;
+   • ver historial;
+   • ver álbum del evento pasado.
+
+Conecta con: QR, Scanner, Reventa, Soporte, Perfil, Álbum y Grupos.
+Riesgo de confusión: el fan puede pensar que una captura de QR sirve siempre. El diseño debe reforzar
+que el QR es dinámico o seguro y que debe mostrarse desde la Wallet.
+
+QR dinámico
+
+El QR es el puente entre Wallet y puerta.
+Qué debe comunicar:
+
+   • que la entrada es válida solo desde la Wallet;
+   • que el QR puede tener ventana de activación;
+   • que capturas o imágenes fijas no son el mecanismo ideal;
+   • que el QR se bloquea si la entrada se transfiere, revende, cancela o usa.
+
+Conecta con: Wallet, Scanner, Staff, Admin y Soporte.
+Pendiente: definir experiencia de contingencia cuando el fan no tiene internet, batería o dispositivo
+disponible.
+
+Grupos y amigos
+
+Esta sección organiza la parte social. Debe diferenciar tres conceptos para evitar confusión.
+
+Grupo de compra
+
+Sirve para comprar entradas juntos.
+Reglas principales definidas funcionalmente:
+
+   • puede ser de hasta 4 personas;
+   • se puede crear antes o durante la compra;
+   • está asociado a un evento y fecha específica;
+   • para el MVP se entiende como “todo o nada”;
+   • si alguien inicia el pago, el grupo queda temporalmente bloqueado;
+
+                                                     Feventi - Guia explicativa funcional | Pagina 11 de 31
+   • si el pago se confirma, las entradas pasan a Wallet;
+   • si falla o expira, se libera la reserva.
+
+Conecta con: Explorar, Detalle, Compra y Wallet.
+
+Grupo de evento
+
+Sirve para coordinar con amigos que asistirán al mismo evento, aunque no necesariamente hayan comprado
+juntos.
+Puede incluir:
+
+   • amigos que van;
+   • señales sociales;
+   • coordinación de llegada;
+   • pasar de grupo de compra confirmado a grupo de evento.
+
+Pendiente: definir si se puede crear grupo de evento sin compra conjunta.
+
+Grupo temporal durante el evento
+
+Sirve para encontrarse durante el concierto o evento.
+Puede incluir:
+
+   • ubicación compartida opcional;
+   • tiempo limitado;
+   • control de con quién se comparte;
+   • botón para pausar o apagar ubicación.
+
+Regla clave: la ubicación compartida nunca debe activarse sola. Debe ser opcional, clara y por tiempo
+limitado.
+
+FanPass y puntos
+
+FanPass sirve para fidelizar, premiar asistencia y construir beneficios.
+Qué muestra:
+
+   • nivel o membresía;
+   • puntos acumulados;
+   • puntos pendientes;
+   • beneficios disponibles;
+   • preventas;
+   • multiplicadores;
+   • historial.
+
+Acciones: revisar beneficios, usar beneficios, ganar puntos, canjear si se define.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 12 de 31
+Conecta con: Compra, Wallet, Perfil, Eventos y Comunidad.
+Pendiente: planes, precios, beneficios finales, vencimiento de puntos y catálogo de canjes.
+
+Álbum del evento
+
+El álbum sirve para revivir la experiencia después del evento.
+Qué puede mostrar:
+
+   • fotos del evento;
+   • momentos destacados;
+   • fotos de amigos si aplica;
+   • hashtag oficial;
+   • opción de compartir;
+   • reportar contenido.
+
+Idea explorada: que Feventi pueda mostrar fotos públicas de Instagram por hashtag oficial. Como esto
+depende de permisos y limitaciones de la plataforma, debe existir alternativa: subir fotos directamente o
+agregar enlaces.
+Conecta con: Evento pasado, Perfil, Grupos, Organizador, Admin y Moderación.
+
+Soporte del Fan
+
+Debe servir para resolver problemas sin que el usuario tenga que explicar todo desde cero.
+Casos posibles:
+
+   • pago;
+   • ticket;
+   • QR;
+   • reventa;
+   • cortesía;
+   • grupo;
+   • ubicación;
+   • álbum;
+   • cancelación;
+   • reembolso.
+
+Conecta con: Wallet, Compra, Reventa, Cortesías, Perfil y Admin.
+
+Perfil y privacidad
+
+Controla identidad, visibilidad y permisos sociales.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 13 de 31
+Incluye:
+   • datos básicos;
+   • configuración de privacidad;
+   • modo ninja;
+   • notificaciones;
+   • amistades bloqueadas;
+   • permisos sociales.
+
+Regla importante: modo ninja oculta actividad social frente a otros usuarios, pero no elimina controles de
+seguridad, validación o reglas internas de Feventi.
+
+6. Mundo del Organizador
+
+El organizador usa Feventi para crear, vender y operar eventos. La experiencia debe ser profesional, clara y
+no abrumadora.
+
+Resumen
+
+Es el panel inicial del organizador.
+Qué muestra:
+
+   • eventos activos;
+   • ventas;
+   • asistentes;
+   • alertas;
+   • incidencias;
+   • próximos pasos;
+   • documentos o acciones pendientes.
+Objetivo: que el organizador sepa qué requiere acción y qué es solo informativo.
+
+Solicitudes
+
+Sirve para pedir alta como organizador o enviar un evento a revisión.
+Qué permite:
+
+   • crear solicitud;
+   • guardar borrador;
+   • enviar información;
+
+                                                     Feventi - Guia explicativa funcional | Pagina 14 de 31
+   • responder observaciones;
+   • ver si fue aprobada, rechazada o requiere cambios.
+
+Regla importante: enviar una solicitud no debe publicar automáticamente el evento.
+Conecta con: Eventos, Soporte y Admin Feventi.
+
+Eventos
+
+Es el centro de operación de cada evento aprobado.
+Qué permite:
+
+   • crear evento;
+   • editar información;
+   • agregar imágenes;
+   • definir fecha;
+   • definir lugar;
+   • configurar visibilidad;
+   • pausar o solicitar cambios;
+   • revisar estado de preparación.
+
+Conecta con: Zonas/precios, Ventas, Staff, Cortesías, Promotores, Comunidad, Finanzas y Soporte.
+Pendiente: definir qué cambios puede hacer el organizador después de vender entradas.
+
+Zonas, entradas y precios
+
+Esta sección define qué se vende.
+Qué permite:
+
+   • crear zonas;
+   • definir tipos de entrada;
+   • definir precios;
+   • definir stock;
+   • configurar fases de venta;
+   • configurar asientos si aplica;
+   • aplicar promociones si se confirma.
+
+Riesgo: cambiar zonas, precios o fechas después de vender puede afectar tickets ya emitidos. Por eso,
+cambios sensibles deben tener control Feventi.
+
+Ventas y reportes
+
+Debe explicar el desempeño comercial sin confundir venta bruta con dinero disponible.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 15 de 31
+Qué muestra:
+   • ventas totales;
+   • ventas por zona;
+   • ventas por fecha;
+   • conversión;
+   • reventa;
+   • cortesías;
+   • promotores;
+   • asistencia.
+
+Conecta con: Finanzas, Promotores, Accesos y Eventos.
+Pendiente: definir exportaciones permitidas y qué datos individuales puede ver el organizador.
+
+Staff de puerta
+
+Sirve para preparar la operación de ingreso.
+Qué permite:
+
+   • asignar personal;
+   • dar acceso a scanner;
+   • definir puerta o zona;
+   • revisar actividad;
+   • retirar acceso.
+
+Conecta con: Scanner, Accesos, Soporte y Admin.
+Regla importante: retirar acceso no debe borrar historial de acciones.
+
+Cortesías
+
+Permite distribuir invitaciones con control.
+Qué permite:
+
+   • crear cortesías;
+   • crear bolsas o subgrupos;
+   • enviar invitaciones o códigos;
+   • ver reclamadas;
+   • ver usadas;
+   • revocar si corresponde.
+
+Regla importante: una cortesía debe reclamarse con cuenta Feventi y convertirse en entrada en Wallet. El
+código no debe ser el QR de acceso.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 16 de 31
+Promotores
+
+Sirve para medir canales de crecimiento.
+Qué permite:
+
+   • crear promotores;
+   • asignar códigos o enlaces;
+   • ver ventas asociadas;
+   • revisar rendimiento.
+
+Pendiente: definir comisiones, incentivos, pagos y diferencia entre promotor, influencer y aliado.
+
+Comunidad / Álbum
+
+Permite gestionar la parte social del evento.
+Qué puede permitir:
+
+   • definir hashtag oficial;
+   • activar o desactivar álbum;
+   • ver contenido agregado;
+   • destacar fotos si se permite;
+   • reportar contenido;
+   • ver actividad comunitaria agregada.
+
+Pendiente: decidir si el organizador puede moderar o solo reportar contenido, y si puede destacar fotos.
+
+Finanzas y liquidación
+
+Debe explicar cuánto corresponde al organizador y cuándo se paga.
+Qué muestra:
+
+   • venta bruta;
+   • comisiones;
+   • reservas;
+   • reembolsos;
+   • retenciones;
+   • monto estimado;
+   • estado de pago;
+   • calendario de liquidación.
+
+Regla importante: el organizador no debe confundir “estimado” con “monto disponible”.
+Conecta con: Ventas, Soporte, Admin y Riesgo financiero.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 17 de 31
+Soporte del Organizador
+
+Sirve para resolver problemas operativos, comerciales o documentales.
+Casos posibles:
+
+   • solicitud observada;
+   • evento con error;
+   • problema de ventas;
+   • problema de staff;
+   • consulta de liquidación;
+   • cancelación o reprogramación;
+   • emergencia durante evento.
+
+7. Mundo del Staff de puerta
+
+El staff necesita una experiencia muy simple. No debe ver todo Feventi, solo lo necesario para operar el
+ingreso.
+
+Mis eventos
+
+Muestra únicamente eventos asignados.
+Qué debe mostrar:
+
+   • evento;
+   • fecha;
+   • puerta o zona;
+   • horario;
+   • estado de preparación;
+   • botón para abrir scanner.
+Riesgo: operar el evento equivocado. Por eso, la pantalla debe dejar claro evento, fecha y puerta.
+
+Scanner
+
+Es la pantalla crítica del staff.
+Qué debe mostrar:
+
+   • cámara;
+   • evento activo;
+
+                                                     Feventi - Guia explicativa funcional | Pagina 18 de 31
+   • estado de conexión;
+   • ayuda mínima;
+   • resultado grande.
+
+Resultados posibles:
+   • entrada válida;
+   • entrada ya usada;
+   • entrada inválida;
+   • entrada cancelada;
+   • entrada revendida o QR anterior inválido;
+   • zona incorrecta;
+   • revisar con soporte.
+
+Regla de diseño: el resultado debe ser gigante, claro y accionable.
+
+Historial del turno
+
+Permite ver validaciones recientes.
+Qué muestra:
+
+   • hora;
+   • resultado;
+   • puerta;
+   • referencia limitada;
+   • incidencias.
+
+Regla: el staff no debería poder borrar validaciones. Solo perfiles autorizados podrían corregir con
+trazabilidad.
+
+Incidencias
+
+Sirve para pedir ayuda en puerta.
+Casos posibles:
+
+   • QR no lee;
+   • fan sin batería;
+   • identidad no coincide;
+   • entrada ya usada;
+   • zona incorrecta;
+   • problema de conexión;
+   • caso de supervisor.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 19 de 31
+Pendiente: definir protocolo de emergencia y quién puede autorizar excepciones.
+
+8. Mundo del Admin Feventi
+
+Admin Feventi es el centro interno de supervisión. Debe ayudar a priorizar riesgos y resolver excepciones.
+
+Resumen
+
+Muestra el estado global de operación.
+Qué puede mostrar:
+
+   • solicitudes pendientes;
+   • eventos próximos;
+   • incidencias abiertas;
+   • pagos en revisión;
+   • tickets bloqueados;
+   • devoluciones;
+   • alertas de riesgo;
+   • tareas asignadas.
+
+Solicitudes
+
+Permite aprobar organizadores y eventos.
+Qué debe permitir:
+
+   • revisar información;
+   • pedir cambios;
+   • aprobar;
+   • rechazar;
+   • dejar observaciones;
+   • asignar responsable;
+   • registrar decisión.
+Regla: una aprobación debe dejar evidencia y trazabilidad.
+
+Eventos
+
+Permite supervisar eventos publicados, pausados, cancelados o problemáticos.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 20 de 31
+Qué puede hacer Admin:
+   • validar información;
+   • pausar evento;
+   • cancelar evento;
+   • revisar cambios sensibles;
+   • revisar lugar, zonas y aforo;
+   • supervisar operación.
+
+Usuarios y organizadores
+
+Permite revisar cuentas y comportamiento riesgoso.
+Qué puede incluir:
+
+   • perfiles;
+   • estado de cuenta;
+   • verificaciones;
+   • historial de incidentes;
+   • restricciones;
+   • reputación del organizador.
+Pendiente: definir matriz de permisos internos y política de acceso a datos personales.
+
+Pagos y tickets
+
+Permite investigar una compra de principio a fin.
+Qué muestra:
+
+   • orden;
+   • pago;
+   • tickets emitidos;
+   • propietario original;
+   • propietario actual;
+   • asistente asignado;
+   • cambios de titularidad;
+   • QR activo o invalidado;
+   • soporte asociado.
+Conecta con: Soporte, Reventa, Accesos, Finanzas y Riesgo.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 21 de 31
+Accesos en vivo
+
+Sirve para eventos en operación.
+Qué muestra:
+
+   • check-ins en vivo;
+   • rechazos;
+   • duplicados;
+   • dispositivos;
+   • staff;
+   • conectividad;
+   • incidencias.
+Acciones: contactar supervisor, autorizar excepción documentada, desactivar acceso comprometido o
+reasignar staff.
+
+Reventa
+
+Supervisa el mercado oficial.
+Qué revisa:
+
+   • publicaciones activas;
+   • ventas completadas;
+   • reclamos;
+   • montos retenidos;
+   • límites de precio;
+   • cambios de propietario.
+
+Cortesías
+
+Supervisa invitaciones, códigos y usos.
+Qué revisa:
+
+   • bolsas;
+   • responsables;
+   • códigos reclamados;
+   • códigos usados;
+   • abusos;
+   • revocaciones.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 22 de 31
+Promotores
+
+Supervisa códigos, enlaces, ventas e incentivos.
+Pendiente: definir si Feventi solo mide atribución o también calcula pagos a promotores.
+
+FanPass
+
+Supervisa membresías, beneficios y puntos.
+Pendiente: planes, reglas de puntos, canjes, vencimientos y ajustes manuales.
+
+Comunidad y álbumes
+
+Supervisa contenido social asociado a eventos.
+Qué puede revisar:
+
+   • álbumes de eventos;
+   • hashtags;
+   • reportes de contenido;
+   • contenido inapropiado;
+   • abusos;
+   • privacidad.
+
+Soporte, cancelaciones y reembolsos
+
+Es una de las áreas más sensibles.
+Debe separar claramente:
+
+   • consulta;
+   • reclamo;
+   • reembolso;
+   • disputa bancaria;
+   • cancelación;
+   • reprogramación.
+Regla: evitar dos procesos de recuperación por el mismo pago.
+
+Finanzas, liquidaciones y riesgo
+
+Supervisa dinero, reservas, pagos al organizador y riesgos.
+Qué debe mostrar:
+
+   • fondos disponibles;
+
+                                                     Feventi - Guia explicativa funcional | Pagina 23 de 31
+   • fondos comprometidos;
+   • fondos congelados;
+   • reservas para devolución;
+   • retenciones;
+   • liquidaciones;
+   • disputas;
+   • evidencias.
+Regla importante: antes de dinero real, Feventi debe tener políticas claras para cancelaciones, reembolsos,
+garantías, retenciones y liberación de fondos.
+
+9. Funciones transversales
+
+Estas funciones no pertenecen a una sola pantalla. Conectan varios mundos.
+
+Wallet
+
+Conecta compra, tickets, QR, reventa, nominación, soporte y eventos pasados.
+Debe ser el centro de control del fan.
+
+QR dinámico
+
+Conecta Wallet con Scanner y seguridad.
+Debe evitar que una captura estática sea tratada como credencial permanente.
+
+Compra grupal
+
+Conecta evento, amigos, compra, reserva, pago y Wallet.
+Debe ser simple: grupo hasta 4, reglas claras, todo o nada para el MVP.
+
+Grupo de evento
+
+Conecta asistencia, amigos, señales sociales, ubicación y álbum.
+Debe diferenciarse del grupo de compra.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 24 de 31
+Ubicación compartida
+
+Conecta grupo temporal, privacidad y experiencia durante el evento.
+Debe ser opcional, temporal y controlada.
+
+Reventa oficial
+
+Conecta Wallet, mercado público, pagos, nuevo propietario, nuevo QR y soporte.
+Debe estar separada visualmente de la venta primaria.
+
+Cortesías
+
+Conectan organizador, fan, wallet, admin y acceso.
+Deben reclamarse como entrada, no funcionar como QR directo.
+
+FanPass
+
+Conecta compras, asistencia, beneficios, puntos y comunidad.
+Debe comunicarse como beneficio, no como garantía de stock.
+
+Álbum del evento
+
+Conecta evento pasado, Instagram o carga directa, fans, organizador, comunidad y moderación.
+Debe tener reglas claras antes de tratarse como producto final.
+
+Modo ninja
+
+Conecta privacidad, amigos, señales sociales, grupos y recomendaciones.
+Debe ocultar actividad social, pero no controles internos.
+
+Soporte
+
+Conecta cualquier problema con el equipo de Feventi.
+Debe estar disponible desde el contexto afectado: compra, ticket, evento, reventa, cortesía, grupo o pago.
+
+Liquidación
+
+Conecta ventas, pagos, reembolsos, reservas y organizador.
+Debe explicar dinero con claridad: bruto, neto estimado, retenido, disponible y pagado.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 25 de 31
+10. Qué falta definir
+
+Esta sección resume las principales decisiones pendientes antes de convertir todo en diseño final o
+construcción.
+
+Producto y navegación
+
+   • Si Inicio y Explorar del fan serán pestañas separadas.
+   • Qué funciones merecen pestaña propia y cuáles deben vivir dentro de cada evento o entrada.
+   • Si habrá centro de notificaciones.
+   • Qué aparece en el menú principal y qué aparece solo cuando aplica.
+
+Compra y eventos
+
+   • Qué pasa cuando un evento se agota: lista de espera, aviso o reventa.
+   • Cómo se recupera una compra expirada o un pago interrumpido.
+   • Qué cambios puede solicitar un organizador después de vender entradas.
+   • Qué nivel de planos y asientos necesita el primer piloto.
+
+Comunidad y grupos
+
+   • Si los grupos de evento nacen automáticamente desde una compra grupal.
+   • Si se puede crear grupo de evento sin comprar juntos.
+   • Qué ve cada miembro si alguien usa modo ninja.
+   • Cómo se elige o cambia coordinador del grupo.
+
+Ubicación y álbum
+
+   • Si ubicación compartida entra desde el MVP.
+   • Si el álbum entra desde el MVP o fase posterior.
+   • Si el álbum será público o solo para asistentes.
+   • Si las fotos de Instagram se mostrarán automáticamente o con respaldo manual.
+   • Si se permitirá subir fotos directo a Feventi.
+   • Si se permitirán videos.
+   • Qué reglas tendrá el hashtag oficial.
+   • Qué pasa con contenido reportado.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 26 de 31
+Identidad y puerta
+
+   • Cómo se verifica identidad finalmente.
+   • Cómo ingresa un fan sin conexión, batería o dispositivo funcional.
+   • Cómo trabaja el staff sin internet.
+   • Quién puede autorizar una excepción.
+   • Cómo se registra una excepción.
+
+Organizador y privacidad
+
+   • Qué datos agregados e individuales puede ver el organizador.
+   • Qué reportes puede descargar.
+   • Qué tiempos de revisión y soporte se prometen.
+   • Cómo se calcula reputación del organizador.
+
+Dinero, soporte y riesgo
+
+   • Qué acciones financieras exigen doble aprobación.
+   • Cómo se explican reservas, retenciones y congelamientos sin tecnicismos.
+   • Qué proceso de apelación existe.
+   • Qué canal atiende emergencias durante evento.
+   • Cómo diferenciar reembolso, reclamo y disputa bancaria.
+   • Qué validaciones legales y contables deben cerrarse antes de dinero real.
+
+Funciones especiales
+
+   • Cómo se pagan o premian promotores.
+   • Cuándo se activará venta en puerta.
+   • Cuándo se hacen públicas las calificaciones.
+   • Si la Wallet guardará solo entradas o también saldo/créditos.
+   • Si existirá tienda de canjes.
+   • Si Mystery Box y sorteos son producto real o exploración visual.
+
+11. Qué diseñar primero
+
+Para no intentar diseñar todo al mismo tiempo, conviene organizar las pantallas por prioridad.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 27 de 31
+Prioridad máxima
+
+Estas pantallas explican el corazón del producto y deberían diseñarse primero:
+ 1. Detalle del evento.
+ 2. Compra completa.
+ 3. Wallet.
+ 4. Detalle de entrada con QR.
+ 5. Scanner.
+ 6. Panel organizador básico.
+ 7. Solicitud de evento.
+ 8. Admin de aprobación y soporte.
+
+Prioridad alta
+
+Estas pantallas son importantes para operación completa:
+ 1. Grupos y amigos.
+ 2. Compra grupal.
+ 3. Perfil y privacidad.
+ 4. Reventa oficial.
+ 5. Cortesías.
+ 6. Ventas y reportes.
+ 7. Liquidación.
+ 8. Staff de puerta.
+ 9. Soporte contextual.
+
+Prioridad media
+
+Estas pantallas pueden diseñarse después de cerrar el flujo base:
+ 1. FanPass.
+ 2. Puntos.
+ 3. Promotores.
+ 4. Grupo temporal durante evento.
+ 5. Ubicación compartida.
+ 6. Álbum del evento.
+ 7. Comunidad y señales sociales.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 28 de 31
+Fase posterior
+
+Estas funciones no deben bloquear el MVP ni aparecer como promesa final si no están confirmadas:
+ 1. Álbum automático completo con Instagram.
+ 2. Feed social avanzado.
+ 3. Mapa interno del venue.
+ 4. Sorteos.
+ 5. Mystery Box.
+ 6. Tienda o saldo monetario.
+ 7. Venta en puerta visible.
+ 8. Páginas especiales premium por evento.
+
+12. Recomendación para próximos pasos
+
+Paso 1: cerrar navegación principal
+
+Antes de seguir diseñando, conviene decidir qué pestañas irán en el menú principal de cada mundo.
+Fan sugerido: Explorar, Mis entradas, Grupos, Soporte, Perfil.
+Organizador sugerido: Resumen, Solicitudes, Eventos, Ventas, Staff, Cortesías, Finanzas, Soporte.
+Staff sugerido: Mis eventos, Scanner, Historial, Incidencias.
+Admin sugerido: Resumen, Solicitudes, Eventos, Usuarios, Pagos/Tickets, Soporte, Finanzas/Riesgo,
+Configuración.
+
+Paso 2: separar MVP visible de MVP estructural
+
+No todo lo documentado debe verse desde el primer día.
+   • MVP visible: compra, wallet, QR, scanner, solicitud, admin, ventas básicas.
+   • MVP estructural: reventa, cortesías, grupos, FanPass, finanzas y soporte, si ya se consideran dentro del
+     alcance documental.
+   • UI limitada: funciones que aparecen solo cuando aplican.
+   • Futuro: funciones sociales avanzadas, tienda, saldo, Mystery Box y álbum automático completo.
+
+Paso 3: convertir esta guía en briefs de diseño
+
+Cada pantalla prioritaria debería tener un brief con:
+   • objetivo;
+
+                                                     Feventi - Guia explicativa funcional | Pagina 29 de 31
+   • usuario;
+   • información principal;
+   • acciones principales;
+   • acciones secundarias;
+   • estados vacíos;
+   • estados con datos;
+   • estados de error;
+   • estados de carga;
+   • conexión con otras pantallas;
+   • riesgos de confusión;
+   • prioridad.
+
+Paso 4: no pasar a dinero real sin cerrar riesgos
+
+Antes de producción real, Feventi debe tener mucho más claro:
+   • política de cancelaciones;
+   • política de reembolsos;
+   • tratamiento de cargos de pasarela;
+   • retenciones al organizador;
+   • garantías;
+   • liquidaciones;
+   • soporte de emergencia;
+   • responsabilidad ante fraude;
+   • operación en puerta.
+
+13. Resumen final
+
+Feventi debe entenderse como una experiencia completa alrededor del evento.
+El fan descubre, compra, guarda, entra, comparte y recuerda.
+El organizador crea, vende, opera y revisa.
+El staff valida el ingreso.
+El equipo Feventi supervisa, resuelve y protege.
+La página pública convierte visitantes en compradores.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 30 de 31
+Las funciones sociales, como grupos, ubicación compartida y álbum del evento, no reemplazan la venta de
+entradas: la fortalecen. Ayudan a que Feventi no sea solo una ticketera, sino una plataforma donde la
+experiencia del evento empieza antes de comprar y continúa después de asistir.
+Conclusión práctica: el diseño debe comenzar por el flujo evento -> compra -> wallet -> QR -> puerta, y
+luego avanzar hacia operación organizador, soporte, reventa, cortesías, finanzas y comunidad.
+
+                                                     Feventi - Guia explicativa funcional | Pagina 31 de 31
+

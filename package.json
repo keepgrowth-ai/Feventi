@@ -1,0 +1,16 @@
+{
+  "name": "feventi",
+  "private": true,
+  "description": "Ticketera B2B2C para eventos. Angular + Supabase, desarrollo spec-driven.",
+  "workspaces": [
+    "apps/web"
+  ],
+  "scripts": {
+    "dev": "npm --workspace apps/web run start",
+    "build": "npm --workspace apps/web run build",
+    "test": "npm --workspace apps/web run test",
+    "gen:types": "supabase gen types typescript --project-id orirleaujhpewiowaanq --schema public > apps/web/src/app/core/db.types.ts",
+    "db:lint": "echo \"Correr mcp__supabase__get_advisors(security) y comparar con specs/advisor-baseline.md\"",
+    "test:rls": "echo \"Correr supabase/tests/*.sql con mcp__supabase__execute_sql. Ver specs/roadmap.md\""
+  }
+}

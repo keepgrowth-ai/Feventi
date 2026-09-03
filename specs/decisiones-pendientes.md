@@ -1,0 +1,67 @@
+# Decisiones pendientes
+
+De la sección 10 de la guía funcional. Cada una tiene un **default seguro** que rige
+mientras no se decida, para que ninguna bloquee Fase 1.
+
+Regla: cuando una se cierre, se anota la fecha y quién decidió, y se actualiza el
+artículo o el feature afectado en el mismo commit.
+
+Estado: `abierta` · `cerrada (fecha)` · `diferida a Fase N`
+
+---
+
+## Bloquean Fase 1
+
+| # | Pregunta | Default vigente | Afecta | Estado |
+|---|---|---|---|---|
+| D-01 | ¿Qué criterio hace que un evento salga destacado: fecha, popularidad, categoría, campaña pagada o curaduría Feventi? | Curaduría manual: `events.featured_at` lo pone Admin. Sin algoritmo. | 002 | abierta |
+| D-02 | ¿Cómo se recupera una compra expirada o un pago interrumpido? | La reserva expira y se libera; el fan vuelve a empezar. Sin recuperación automática. | 004 | abierta |
+| D-03 | ¿Cómo ingresa un fan sin conexión, batería o dispositivo? | Modo DNI del validador: el staff busca por DNI y valida a mano. Queda `checkin` con `result = manual_review`. | 006 | abierta |
+| D-04 | ¿Cómo trabaja el staff sin internet? | No se soporta. El validador exige conexión y lo dice en pantalla. Es la opción honesta hasta tener protocolo. | 006 | abierta |
+| D-05 | ¿Quién autoriza una excepción en puerta y cómo se registra? | Nadie desde la app. La excepción se pide por soporte y la ejecuta Admin, dejando `ticket_events`. | 006, 009 | abierta |
+| D-06 | ¿Qué datos individuales de asistentes puede ver el organizador? | Solo agregados (Art. 7.5). Ningún dato individual. | 008 | abierta |
+| D-07 | ¿Qué reportes puede descargar el organizador? | Ninguno en Fase 1. Se ve en pantalla, no se exporta. | 008 | abierta |
+| D-08 | ¿Qué cambios puede hacer el organizador después de vender entradas? | Ninguno sobre zonas, precios, fecha, aforo ni venue: pasa por Admin (Art. 4.4). Sí puede editar descripción e imagen. | 007 | abierta |
+| D-09 | ¿Qué nivel de planos y asientos necesita el primer piloto? | Sin plano gráfico. Selección por fila y número desde una lista. | 003, 004 | abierta |
+| D-10 | ¿Cómo se verifica la identidad finalmente? | DNI declarado y hasheado; `dni_verified_at` se sella a mano por Admin. Sin proveedor de KYC. | 001, 004 | abierta |
+| D-11 | ¿Existe centro de notificaciones? | No. Las alertas viven en el inicio de cada mundo. | 005, 008 | abierta |
+| D-12 | ¿Se diferencian «reembolso», «reclamo» y «disputa bancaria»? | Sí, ya está en `support_kind`. Falta el **proceso** de cada uno. Regla firme: no se abren dos vías de recuperación por el mismo pago. | 009 | abierta |
+
+## Bloquean Fase 2
+
+| # | Pregunta | Default vigente | Estado |
+|---|---|---|---|
+| D-20 | ¿Orden de publicaciones, límites de precio y retención al vendedor en reventa? | Cola FIFO, precio ≤ original, retención 24 h post-evento (Art. 6). | diferida a Fase 2 |
+| D-21 | ¿El grupo de evento nace automáticamente de una compra grupal? | No: se crea a mano. | diferida a Fase 3 |
+| D-22 | ¿Se puede crear grupo de evento sin comprar juntos? | Sí. | diferida a Fase 3 |
+| D-23 | ¿Qué ve un miembro del grupo si alguien usa modo ninja? | Nada de su actividad social; sí su presencia en el grupo, que es un acto explícito. | diferida a Fase 3 |
+| D-24 | ¿Cómo se elige o cambia el coordinador del grupo? | Lo es quien lo creó; sin transferencia. | diferida a Fase 3 |
+| D-25 | ¿Qué acciones financieras exigen doble aprobación? | Ninguna implementada. Antes de dinero real, todas las salidas (Art. 13). | diferida a Fase 2 |
+| D-26 | ¿Cómo se calcula la reputación del organizador? | Sin fórmula. La columna existe y queda en null. | diferida a Fase 2 |
+| D-27 | ¿Feventi solo mide atribución de promotores o también calcula sus pagos? | Solo atribución. | diferida a Fase 3 |
+| D-28 | ¿La wallet guarda solo entradas o también saldo? | Solo entradas. El «Saldo S/ 180» del mockup de checkout es **decorativo** y no se implementa. | diferida |
+| D-29 | ¿Planes, precios, beneficios, vencimiento de puntos y catálogo de canjes de FanPass? | Sin plan. El chip de FanPass se muestra solo si existe la membresía. | diferida a Fase 3 |
+| D-30 | ¿El álbum entra al MVP? ¿Público, solo asistentes o mixto? ¿Instagram automático? ¿Videos? | Fuera. Sin álbum, sin hashtag activo, sin subida de fotos. | diferida a Fase 3 |
+| D-31 | ¿Ubicación compartida entra al MVP? | No (Art. 7.4). | diferida a Fase 3 |
+| D-32 | ¿El organizador modera contenido o solo reporta? | Solo reporta; modera Admin. | diferida a Fase 3 |
+| D-33 | ¿Cuándo se activa venta en puerta? | Nunca en Fase 1–2. No aparece en la UI. | diferida |
+| D-34 | ¿Cuándo se hacen públicas las calificaciones? | No existen. | diferida |
+| D-35 | ¿Mystery Box y sorteos son producto real o exploración visual? | Exploración. No se prometen (Art. 12.5 y roadmap). | diferida |
+| D-36 | ¿Se fusionan «Inicio» y «Explorar» del fan? | Fase 1 no tiene ninguna de las dos: la wallet es la home del fan. Se decide al diseñar Fase 3. | diferida a Fase 3 |
+
+## Bloquean producción, no desarrollo
+
+**Art. 13.** Ninguna se puede sustituir por un default: exigen documento.
+
+| # | Pregunta |
+|---|---|
+| D-40 | Política de cancelaciones |
+| D-41 | Política de reembolsos y plazos |
+| D-42 | Tratamiento de los cargos de la pasarela ante un reembolso |
+| D-43 | Retenciones y garantías al organizador |
+| D-44 | Calendario de liquidación y condiciones de liberación de fondos |
+| D-45 | Canal y SLA de emergencia durante un evento en curso |
+| D-46 | Responsabilidad ante fraude, y quién absorbe la pérdida |
+| D-47 | Proceso de apelación del organizador ante una retención |
+| D-48 | Validaciones legales y contables previas a cobrar dinero real |
+| D-49 | Protocolo de contingencia en puerta (caída de red, caída de Feventi) |

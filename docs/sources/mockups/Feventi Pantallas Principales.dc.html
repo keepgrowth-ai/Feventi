@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+body{margin:0;background:#FAFAFA;color:#09090B;font-family:Inter,system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+*{box-sizing:border-box}
+a{color:#FF4D6D;text-decoration:none}
+a:hover{color:#1D184C}
+@keyframes fvpulse{0%,100%{opacity:1}50%{opacity:.45}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:#FAFAFA">
+
+  <header style="background:#1D184C;color:#fff;position:sticky;top:0;z-index:50">
+    <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 24px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:11px">
+        <div style="width:36px;height:36px;background:#FF4D6D;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:18px">F</div>
+        <div>
+          <div style="font-size:18px;font-weight:800;letter-spacing:-.5px;line-height:1.1">FEVENTI</div>
+          <div style="font-size:11px;opacity:.6">{{ roleSubtitle }}</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <sc-for list="{{ roles }}" as="r" hint-placeholder-count="4">
+          <button onClick="{{ r.onClick }}" style="padding:6px 13px;border-radius:8px;font:600 12.5px Inter;border:none;cursor:pointer;background:{{ r.bg }};color:{{ r.fg }}">{{ r.label }}</button>
+        </sc-for>
+      </div>
+    </div>
+    <nav style="display:flex;gap:2px;padding:0 18px;border-top:1px solid rgba(255,255,255,.1);overflow-x:auto">
+      <sc-for list="{{ navItems }}" as="n" hint-placeholder-count="5">
+        <button onClick="{{ n.onClick }}" style="background:none;padding:10px 14px;font:500 12.5px Inter;white-space:nowrap;border:none;cursor:pointer;border-bottom:3px solid {{ n.bd }};color:{{ n.fg }}">{{ n.label }}</button>
+      </sc-for>
+    </nav>
+  </header>
+
+  <main style="max-width:1180px;margin:0 auto;padding:24px 18px 64px">
+
+    <!-- ══ CATÁLOGO ══ -->
+    <sc-if value="{{ isCatalog }}" hint-placeholder-val="{{ true }}">
+    <div>
+      <div style="background:#1D184C;border-radius:18px;padding:30px;color:#fff;margin-bottom:20px;display:flex;justify-content:space-between;align-items:flex-end;gap:24px;flex-wrap:wrap;position:relative;overflow:hidden">
+        <div style="position:absolute;inset:0;background:repeating-linear-gradient(115deg,rgba(255,255,255,.05) 0 2px,transparent 2px 14px)"></div>
+        <div style="position:relative">
+          <span style="display:inline-block;padding:4px 10px;border-radius:20px;background:rgba(255,77,109,.2);color:#FF8FA3;font:600 11px Inter;margin-bottom:12px">Festival · Lima · Preventa 1</span>
+          <div style="font-size:32px;font-weight:900;letter-spacing:-1px;line-height:1.05;margin-bottom:8px">K-Pop Fest 2026</div>
+          <div style="font-size:14px;opacity:.72;margin-bottom:14px">Estadio Nacional · 28 de agosto · 20:00</div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <span style="padding:4px 10px;border-radius:20px;background:#00D4C4;color:#04322f;font:700 11px Inter">Disponible</span>
+            <span style="padding:4px 10px;border-radius:20px;background:rgba(255,176,122,.18);color:#FFB07A;font:600 11px Inter">Últimas VIP · 8 lugares</span>
+            <span style="padding:4px 10px;border-radius:20px;background:rgba(155,140,255,.18);color:#C0B6FF;font:600 11px Inter">Exclusivo FanPass desde S/ 35</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;position:relative">
+          <button onClick="{{ goEvent }}" style="background:#FF4D6D;color:#fff;padding:11px 22px;border:none;border-radius:10px;font:700 13.5px Inter;cursor:pointer">Ver evento</button>
+          <button onClick="{{ goWallet }}" style="background:none;color:#fff;border:1.5px solid rgba(255,255,255,.3);padding:11px 20px;border-radius:10px;font:600 13.5px Inter;cursor:pointer">Mi wallet</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:216px 1fr;gap:20px;align-items:start">
+        <aside style="background:#fff;border:1px solid #E4E4E7;border-radius:14px;padding:18px;position:sticky;top:110px">
+          <div style="font:700 13px Inter;margin-bottom:14px">Filtros</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <div>
+              <div style="font:600 11px Inter;color:#71717A;margin-bottom:5px">Categoría</div>
+              <div style="display:flex;flex-wrap:wrap;gap:6px">
+                <span style="padding:5px 10px;border-radius:8px;background:#1D184C;color:#fff;font:600 11.5px Inter">Todas</span>
+                <span style="padding:5px 10px;border-radius:8px;background:#F4F4F5;color:#52525b;font:500 11.5px Inter">Festival</span>
+                <span style="padding:5px 10px;border-radius:8px;background:#F4F4F5;color:#52525b;font:500 11.5px Inter">Teatro</span>
+                <span style="padding:5px 10px;border-radius:8px;background:#F4F4F5;color:#52525b;font:500 11.5px Inter">Deporte</span>
+              </div>
+            </div>
+            <div>
+              <div style="font:600 11px Inter;color:#71717A;margin-bottom:5px">Ciudad</div>
+              <div style="border:1.5px solid #E4E4E7;border-radius:9px;padding:9px 12px;font:500 12.5px Inter;display:flex;justify-content:space-between;color:#09090B">Lima<span style="color:#a1a1aa">▾</span></div>
+            </div>
+            <div>
+              <div style="font:600 11px Inter;color:#71717A;margin-bottom:5px">Fecha</div>
+              <div style="border:1.5px solid #E4E4E7;border-radius:9px;padding:9px 12px;font:500 12.5px Inter;display:flex;justify-content:space-between;color:#09090B">Próximos 3 meses<span style="color:#a1a1aa">▾</span></div>
+            </div>
+            <div style="border-top:1px solid #E4E4E7;padding-top:14px">
+              <div style="font:600 11px Inter;color:#71717A;margin-bottom:8px">Solo para mí</div>
+              <label style="display:flex;align-items:center;gap:8px;font:500 12.5px Inter;margin-bottom:7px"><span style="width:16px;height:16px;border-radius:5px;background:#9B8CFF;display:inline-block"></span>Preventas FanPass</label>
+              <label style="display:flex;align-items:center;gap:8px;font:500 12.5px Inter;color:#71717A"><span style="width:16px;height:16px;border-radius:5px;border:1.5px solid #E4E4E7;display:inline-block"></span>Con amigos asistiendo</label>
+            </div>
+          </div>
+        </aside>
+
+        <div>
+          <div style="display:flex;align-items:baseline;justify-content:space-between;margin-bottom:14px">
+            <div style="font:700 15px Inter">Catálogo general</div>
+            <div style="font:400 12px Inter;color:#71717A">18 eventos · precios con fase activa</div>
+          </div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+            <sc-for list="{{ catalog }}" as="e" hint-placeholder-count="6">
+              <div style="background:#fff;border:1px solid #E4E4E7;border-radius:14px;overflow:hidden">
+                <div style="height:112px;background:{{ e.grad }};position:relative;display:flex;align-items:flex-end;padding:10px">
+                  <div style="position:absolute;inset:0;background:repeating-linear-gradient(135deg,rgba(255,255,255,.07) 0 3px,transparent 3px 12px)"></div>
+                  <span style="font:600 10px 'JetBrains Mono',monospace;color:rgba(255,255,255,.85);letter-spacing:.5px;position:relative">IMAGEN DEL EVENTO</span>
+                  <span style="position:absolute;top:9px;right:9px;padding:3px 8px;border-radius:20px;background:{{ e.tagBg }};color:{{ e.tagFg }};font:700 10px Inter">{{ e.tag }}</span>
+                </div>
+                <div style="padding:13px">
+                  <div style="font:700 13.5px Inter;margin-bottom:3px">{{ e.name }}</div>
+                  <div style="font:400 11.5px Inter;color:#71717A">{{ e.venue }}</div>
+                  <div style="font:400 11.5px Inter;color:#71717A;margin-bottom:9px">{{ e.date }}</div>
+                  <div style="display:flex;align-items:center;justify-content:space-between">
+                    <div style="font:800 14px Inter;color:#FF4D6D">Desde {{ e.price }}</div>
+                    <span style="padding:3px 8px;border-radius:20px;background:#F4F4F5;color:#52525b;font:600 10.5px Inter">{{ e.phase }}</span>
+                  </div>
+                  <sc-if value="{{ e.social }}" hint-placeholder-val="{{ false }}">
+                    <div style="margin-top:9px;padding-top:9px;border-top:1px solid #F4F4F5;font:500 11px Inter;color:#5b4ccc">{{ e.social }}</div>
+                  </sc-if>
+                </div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ══ EVENTO ══ -->
+    <sc-if value="{{ isEvent }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:1fr 348px;gap:22px;align-items:start">
+      <div>
+        <div style="height:240px;border-radius:18px;background:linear-gradient(135deg,#2d1b69,#1e3a5f);position:relative;display:flex;align-items:flex-end;padding:24px;overflow:hidden">
+          <div style="position:absolute;inset:0;background:repeating-linear-gradient(120deg,rgba(255,255,255,.06) 0 3px,transparent 3px 16px)"></div>
+          <div style="position:relative;color:#fff">
+            <span style="font:600 10px 'JetBrains Mono',monospace;opacity:.8;letter-spacing:1px">KEY VISUAL 1600×600</span>
+            <div style="font-size:30px;font-weight:900;letter-spacing:-.8px;margin-top:8px">K-Pop Fest 2026</div>
+            <div style="font-size:13.5px;opacity:.75">Estadio Nacional · Lima · 28 de agosto, 20:00 · Andes Live SAC</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin:16px 0">
+          <span style="padding:5px 11px;border-radius:20px;background:#e0faf8;color:#0a8a80;font:700 11.5px Inter">Preventa 1 · termina en 3 días</span>
+          <span style="padding:5px 11px;border-radius:20px;background:#ede9ff;color:#5b4ccc;font:700 11.5px Inter">Exclusivo FanPass</span>
+          <span style="padding:5px 11px;border-radius:20px;background:#fff3e0;color:#c47c00;font:700 11.5px Inter">15% con BBVA</span>
+          <span style="padding:5px 11px;border-radius:20px;background:#F4F4F5;color:#52525b;font:600 11.5px Inter">Límite 5 por usuario</span>
+        </div>
+
+        <sc-if value="{{ showSocial }}" hint-placeholder-val="{{ true }}">
+        <div style="background:#f5f3ff;border:1px solid #9B8CFF;border-radius:13px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px">
+          <div>
+            <div style="font:700 13px Inter;color:#3f31a8">2 amigos quieren ir · 1 amigo ya tiene entrada</div>
+            <div style="font:400 11.5px Inter;color:#6b62a8">Solo ves señales de quienes no están en modo ninja.</div>
+          </div>
+          <button style="background:#9B8CFF;color:#fff;border:none;padding:9px 16px;border-radius:9px;font:700 12.5px Inter;cursor:pointer;white-space:nowrap">Armar grupo</button>
+        </div>
+        </sc-if>
+
+        <div style="background:#fff;border:1px solid #E4E4E7;border-radius:14px;padding:20px">
+          <div style="font:700 14px Inter;margin-bottom:4px">Zonas y precios</div>
+          <div style="font:400 11.5px Inter;color:#71717A;margin-bottom:14px">Precio calculado por fase activa. El cargo de servicio se muestra desde el primer paso.</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ zones }}" as="z" hint-placeholder-count="3">
+              <div style="border:1.5px solid {{ z.border }};background:{{ z.bg }};border-radius:12px;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;gap:14px">
+                <div>
+                  <div style="font:700 14px Inter">{{ z.name }}</div>
+                  <div style="font:400 11.5px Inter;color:#71717A">{{ z.stock }}</div>
+                  <div style="font:400 11px Inter;color:#71717A">{{ z.note }}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font:800 19px Inter;color:#FF4D6D">{{ z.total }}</div>
+                  <div style="font:400 11px Inter;color:#71717A">{{ z.breakdown }}</div>
+                </div>
+                <button onClick="{{ goCheckout }}" style="background:{{ z.btnBg }};color:{{ z.btnFg }};border:none;padding:10px 18px;border-radius:9px;font:700 12.5px Inter;cursor:{{ z.cursor }}">{{ z.cta }}</button>
+              </div>
+            </sc-for>
+          </div>
+
+          <div style="margin-top:18px;border-top:1px solid #E4E4E7;padding-top:16px">
+            <div style="font:700 13px Inter;margin-bottom:10px">Platea — segmentos internos de precio</div>
+            <div style="border:1px solid #E4E4E7;border-radius:10px;overflow:hidden">
+              <sc-for list="{{ segments }}" as="s" hint-placeholder-count="3">
+                <div style="display:grid;grid-template-columns:1fr 110px 110px;padding:11px 14px;border-bottom:1px solid #F4F4F5;font:500 12.5px Inter;align-items:center">
+                  <span>{{ s.rows }}</span>
+                  <span style="font-weight:700">{{ s.price }}</span>
+                  <span style="color:#71717A;text-align:right">{{ s.stock }}</span>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside style="position:sticky;top:110px;display:flex;flex-direction:column;gap:14px">
+        <div style="background:#1D184C;color:#fff;border-radius:16px;padding:20px">
+          <div style="font:700 13px Inter;margin-bottom:12px">Línea de fases</div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;gap:11px"><span style="width:9px;height:9px;border-radius:50%;background:#00D4C4;margin-top:5px;flex:none"></span><div><div style="font:700 12.5px Inter">Preventa 1 — S/ 40</div><div style="font:400 11.5px Inter;opacity:.65">Activa · termina en 3 días · 62 cupos</div></div></div>
+            <div style="display:flex;gap:11px"><span style="width:9px;height:9px;border-radius:50%;background:#FFB07A;margin-top:5px;flex:none"></span><div><div style="font:700 12.5px Inter;opacity:.85">Preventa 2 — S/ 50</div><div style="font:400 11.5px Inter;opacity:.6">Abre el 11 de julio</div></div></div>
+            <div style="display:flex;gap:11px"><span style="width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.3);margin-top:5px;flex:none"></span><div><div style="font:700 12.5px Inter;opacity:.7">Regular — S/ 60</div><div style="font:400 11.5px Inter;opacity:.5">Desde el 21 de julio</div></div></div>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:18px">
+          <div style="font:700 13px Inter;margin-bottom:8px">Ticket protegido</div>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="font:400 12px Inter;color:#52525b">QR dinámico en wallet autenticada — no se descarga ni se comparte por imagen.</div>
+            <div style="font:400 12px Inter;color:#52525b">Reventa oficial dentro de Feventi al precio original, máximo 2 veces.</div>
+            <div style="font:400 12px Inter;color:#52525b">Titularidad y nominación controladas por el sistema.</div>
+          </div>
+        </div>
+      </aside>
+    </div>
+    </sc-if>
+
+    <!-- ══ CHECKOUT ══ -->
+    <sc-if value="{{ isCheckout }}" hint-placeholder-val="{{ false }}">
+    <div style="max-width:940px;margin:0 auto">
+      <div style="display:flex;gap:10px;margin-bottom:22px;flex-wrap:wrap">
+        <sc-for list="{{ steps }}" as="st" hint-placeholder-count="5">
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;border-radius:10px;background:{{ st.bg }};color:{{ st.fg }};font:600 12px Inter">
+            <span style="width:19px;height:19px;border-radius:50%;background:{{ st.dot }};color:{{ st.dotFg }};display:flex;align-items:center;justify-content:center;font:700 10.5px Inter">{{ st.n }}</span>{{ st.label }}
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 360px;gap:22px;align-items:start">
+        <div style="background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:24px">
+          <div style="font:800 18px Inter;margin-bottom:4px">Datos del comprador</div>
+          <div style="font:400 12.5px Inter;color:#71717A;margin-bottom:20px">El DNI se usa para nominación y validación en puerta. Se guarda hasheado.</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+            <div><div style="font:600 11.5px Inter;color:#71717A;margin-bottom:5px">Nombre completo</div><div style="border:1.5px solid #E4E4E7;border-radius:9px;padding:11px 13px;font:500 13px Inter">Valeria Demo Ríos</div></div>
+            <div><div style="font:600 11.5px Inter;color:#71717A;margin-bottom:5px">DNI</div><div style="border:1.5px solid #00D4C4;background:#f0fdfc;border-radius:9px;padding:11px 13px;font:600 13px 'JetBrains Mono',monospace;display:flex;justify-content:space-between">76543210<span style="color:#0a8a80;font:700 11px Inter">Verificado</span></div></div>
+            <div><div style="font:600 11.5px Inter;color:#71717A;margin-bottom:5px">Email</div><div style="border:1.5px solid #E4E4E7;border-radius:9px;padding:11px 13px;font:500 13px Inter">demo@feventi.pe</div></div>
+            <div><div style="font:600 11.5px Inter;color:#71717A;margin-bottom:5px">Teléfono</div><div style="border:1.5px solid #E4E4E7;border-radius:9px;padding:11px 13px;font:500 13px Inter">+51 999 888 777</div></div>
+          </div>
+
+          <div style="margin-top:24px;border-top:1px solid #E4E4E7;padding-top:20px">
+            <div style="font:700 14px Inter;margin-bottom:12px">Nominación de acompañantes</div>
+            <div style="display:flex;flex-direction:column;gap:9px">
+              <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #E4E4E7;border-radius:11px;padding:12px 14px">
+                <div><div style="font:600 12.5px Inter">Entrada 1 — Platea B-5</div><div style="font:400 11.5px Inter;color:#71717A">Titular: tú</div></div>
+                <span style="padding:4px 10px;border-radius:20px;background:#e0faf8;color:#0a8a80;font:700 11px Inter">Nominación confirmada</span>
+              </div>
+              <div style="display:flex;align-items:center;justify-content:space-between;border:1px solid #FFB07A;background:#fff9f0;border-radius:11px;padding:12px 14px">
+                <div><div style="font:600 12.5px Inter">Entrada 2 — Platea B-6</div><div style="font:400 11.5px Inter;color:#c47c00">Sin nominar — se generará alerta en puerta (modo flexible)</div></div>
+                <button style="background:#1D184C;color:#fff;border:none;padding:8px 14px;border-radius:8px;font:600 12px Inter;cursor:pointer">Nominar</button>
+              </div>
+            </div>
+          </div>
+
+          <div style="margin-top:24px;border-top:1px solid #E4E4E7;padding-top:20px">
+            <div style="font:700 14px Inter;margin-bottom:12px">Pago</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+              <div style="border:1.5px solid #FF4D6D;background:#fff5f6;border-radius:11px;padding:14px"><div style="font:700 13px Inter">Tarjeta · Culqi</div><div style="font:400 11.5px Inter;color:#71717A">Sandbox — 15% BBVA aplicado</div></div>
+              <div style="border:1.5px solid #E4E4E7;border-radius:11px;padding:14px"><div style="font:700 13px Inter">Wallet Feventi</div><div style="font:400 11.5px Inter;color:#71717A">Saldo S/ 180.00</div></div>
+            </div>
+          </div>
+        </div>
+
+        <aside style="position:sticky;top:110px;background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:20px">
+          <div style="font:700 14px Inter;margin-bottom:14px">Resumen</div>
+          <div style="font:600 12.5px Inter;margin-bottom:2px">K-Pop Fest 2026</div>
+          <div style="font:400 11.5px Inter;color:#71717A;margin-bottom:14px">Platea — Fila B, asientos 5 y 6 · 28 ago</div>
+          <div style="display:flex;flex-direction:column;gap:9px;font:500 12.5px Inter">
+            <sc-for list="{{ summary }}" as="l" hint-placeholder-count="4">
+              <div style="display:flex;justify-content:space-between;color:{{ l.color }}"><span>{{ l.label }}</span><span style="font-family:'JetBrains Mono',monospace">{{ l.value }}</span></div>
+            </sc-for>
+          </div>
+          <div style="border-top:1px solid #E4E4E7;margin:14px 0;padding-top:14px;display:flex;justify-content:space-between;align-items:baseline">
+            <span style="font:700 14px Inter">Total</span>
+            <span style="font:800 22px 'JetBrains Mono',monospace;color:#FF4D6D">{{ total }}</span>
+          </div>
+          <button style="width:100%;background:#FF4D6D;color:#fff;border:none;padding:13px;border-radius:11px;font:700 14px Inter;cursor:pointer">Pagar y emitir tickets</button>
+          <div style="font:400 11px Inter;color:#71717A;text-align:center;margin-top:9px">Tus tickets se emiten solo tras pago confirmado y viven en tu wallet.</div>
+        </aside>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ══ WALLET ══ -->
+    <sc-if value="{{ isWallet }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div style="font:800 20px Inter;margin-bottom:4px">Wallet del fan</div>
+      <div style="font:400 12.5px Inter;color:#71717A;margin-bottom:22px">El ticket es una credencial viva. Las capturas no sirven en puerta.</div>
+      <div style="display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start">
+
+        <div style="width:330px;border-radius:34px;background:#1D184C;padding:12px;box-shadow:0 18px 50px rgba(29,24,76,.28)">
+          <div style="background:#0e0b28;border-radius:26px;padding:14px 16px 20px;color:#fff">
+            <div style="display:flex;justify-content:space-between;font:600 10.5px 'JetBrains Mono',monospace;opacity:.5;margin-bottom:16px"><span>20:31</span><span>QR ACTIVO</span></div>
+            <div style="font:700 13px Inter;margin-bottom:2px">Feventi Wallet</div>
+            <div style="font:400 11.5px Inter;opacity:.6;margin-bottom:16px">Entrada activa · K-Pop Fest 2026</div>
+            <div style="background:#fff;border-radius:18px;padding:18px;text-align:center">
+              <div style="display:grid;grid-template-columns:repeat(9,1fr);gap:3px;width:180px;margin:0 auto 14px">
+                <sc-for list="{{ qrCells }}" as="c" hint-placeholder-count="81">
+                  <div style="aspect-ratio:1;border-radius:2px;background:{{ c.bg }}"></div>
+                </sc-for>
+              </div>
+              <div style="font:600 12px 'JetBrains Mono',monospace;color:#0a8a80">Se actualiza en {{ qrCountdown }}</div>
+              <div style="height:4px;border-radius:3px;background:#e4e4e7;margin:9px 24px 0;overflow:hidden"><div style="height:100%;background:#00D4C4;width:{{ qrProgress }}"></div></div>
+            </div>
+            <div style="margin-top:16px;display:flex;flex-direction:column;gap:5px">
+              <div style="display:flex;justify-content:space-between;font:600 11.5px 'JetBrains Mono',monospace"><span style="opacity:.55">TICKET</span><span>FVT-2026-A3B7K9</span></div>
+              <div style="display:flex;justify-content:space-between;font:500 11.5px Inter"><span style="opacity:.55">Zona</span><span>Platea · Fila B-5</span></div>
+              <div style="display:flex;justify-content:space-between;font:500 11.5px Inter"><span style="opacity:.55">Titular</span><span>Valeria Demo</span></div>
+            </div>
+            <div style="margin-top:14px;background:rgba(0,212,196,.12);border:1px solid rgba(0,212,196,.4);border-radius:11px;padding:10px 12px;font:500 11.5px Inter;color:#7ff0e6">Muestra este QR en puerta. Las capturas no funcionan.</div>
+          </div>
+        </div>
+
+        <div style="flex:1;min-width:340px;display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #E4E4E7;border-radius:14px;padding:18px">
+            <div style="font:700 13px Inter;margin-bottom:12px">Otras entradas</div>
+            <div style="display:flex;flex-direction:column;gap:10px">
+              <sc-for list="{{ walletTickets }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;gap:13px;align-items:flex-start;border:1px solid #E4E4E7;border-radius:12px;padding:13px">
+                  <div style="width:48px;height:48px;border-radius:10px;background:{{ t.grad }};flex:none"></div>
+                  <div style="flex:1">
+                    <div style="font:700 13px Inter">{{ t.name }}</div>
+                    <div style="font:400 11.5px Inter;color:#71717A;margin-bottom:6px">{{ t.meta }}</div>
+                    <span style="padding:3px 9px;border-radius:20px;background:{{ t.badgeBg }};color:{{ t.badgeFg }};font:700 10.5px Inter">{{ t.badge }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+
+          <div style="background:#fafafa;border:2px dashed #E4E4E7;border-radius:14px;padding:20px;text-align:center">
+            <div style="font:700 13px Inter;margin-bottom:6px">QR aún no disponible</div>
+            <div style="font:400 12.5px Inter;color:#71717A;max-width:340px;margin:0 auto">Tu QR de <strong>Obra: El Final</strong> estará disponible desde el 1 de julio (14 días antes del evento).</div>
+          </div>
+
+          <div style="background:#f5f3ff;border:1px solid #9B8CFF;border-radius:14px;padding:18px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap">
+            <div>
+              <div style="font:700 13px Inter;color:#3f31a8">FanPass Premium activo</div>
+              <div style="font:400 11.5px Inter;color:#6b62a8">Preventas · 2x puntos · acceso anticipado · vence 31/12/2026</div>
+            </div>
+            <div style="text-align:right"><div style="font:800 20px 'JetBrains Mono',monospace;color:#5b4ccc">1,240</div><div style="font:500 10.5px Inter;color:#6b62a8">puntos</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ══ REVENTA ══ -->
+    <sc-if value="{{ isResale }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:1fr 380px;gap:22px;align-items:start">
+      <div>
+        <div style="font:800 20px Inter;margin-bottom:4px">Reventa oficial</div>
+        <div style="font:400 12.5px Inter;color:#71717A;margin-bottom:18px">Precio máximo = precio original. Comisión visible descontada al vendedor. Máximo 2 reventas por entrada.</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ listings }}" as="r" hint-placeholder-count="3">
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:14px;padding:16px 18px;display:flex;gap:16px;align-items:center">
+              <div style="width:54px;height:54px;border-radius:11px;background:{{ r.grad }};flex:none"></div>
+              <div style="flex:1">
+                <div style="font:700 14px Inter">{{ r.name }}</div>
+                <div style="font:400 11.5px Inter;color:#71717A">{{ r.meta }}</div>
+                <div style="display:flex;gap:7px;margin-top:7px;flex-wrap:wrap">
+                  <span style="padding:3px 9px;border-radius:20px;background:#e0faf8;color:#0a8a80;font:700 10.5px Inter">Reventa oficial</span>
+                  <span style="padding:3px 9px;border-radius:20px;background:#F4F4F5;color:#52525b;font:600 10.5px Inter">{{ r.seller }}</span>
+                  <span style="padding:3px 9px;border-radius:20px;background:#F4F4F5;color:#52525b;font:600 10.5px Inter">{{ r.count }}</span>
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div style="font:800 19px 'JetBrains Mono',monospace;color:#FF4D6D">{{ r.price }}</div>
+                <div style="font:400 11px Inter;color:#71717A">Original {{ r.original }}</div>
+              </div>
+              <button style="background:#FF4D6D;color:#fff;border:none;padding:11px 18px;border-radius:10px;font:700 12.5px Inter;cursor:pointer">Comprar</button>
+            </div>
+          </sc-for>
+        </div>
+        <div style="margin-top:14px;background:#fff5f6;border:1px solid #FF4D6D;border-radius:12px;padding:14px 16px;font:500 12px Inter;color:#a3213a">Al completar la reventa el QR del vendedor se invalida y se emite una credencial nueva para el comprador.</div>
+      </div>
+
+      <aside style="background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:20px;position:sticky;top:110px">
+        <div style="font:700 14px Inter;margin-bottom:14px">Publicar mi entrada</div>
+        <div style="border:1px solid #E4E4E7;border-radius:12px;padding:13px;margin-bottom:14px">
+          <div style="font:600 12.5px Inter">Obra: El Final — Platea B-5</div>
+          <div style="font:400 11.5px Inter;color:#71717A">Precio original S/ 120 · origen: compra regular</div>
+        </div>
+        <div style="font:600 11.5px Inter;color:#71717A;margin-bottom:5px">Precio de venta (máx. S/ 120)</div>
+        <div style="border:1.5px solid #E4E4E7;border-radius:9px;padding:11px 13px;font:700 15px 'JetBrains Mono',monospace;margin-bottom:16px">S/ 120.00</div>
+        <div style="background:#f8f8fc;border-radius:11px;padding:14px;display:flex;flex-direction:column;gap:8px;font:500 12.5px Inter">
+          <div style="display:flex;justify-content:space-between"><span style="color:#71717A">Comisión primera reventa</span><span>10%</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:#71717A">Comisión descontada</span><span style="color:#FF4D6D;font-family:'JetBrains Mono',monospace">− S/ 12.00</span></div>
+          <div style="display:flex;justify-content:space-between;border-top:1px solid #E4E4E7;padding-top:8px"><strong>Tú recibirás</strong><strong style="font-family:'JetBrains Mono',monospace">S/ 108.00</strong></div>
+        </div>
+        <div style="background:#fff9f0;border:1px solid #FFB07A;border-radius:11px;padding:12px;font:500 11.5px Inter;color:#c47c00;margin:14px 0">El pago queda retenido hasta 24 h después del evento.</div>
+        <button style="width:100%;background:#1D184C;color:#fff;border:none;padding:12px;border-radius:11px;font:700 13.5px Inter;cursor:pointer">Publicar reventa</button>
+      </aside>
+    </div>
+    </sc-if>
+
+    <!-- ══ GATE / SCANNER ══ -->
+    <sc-if value="{{ isGate }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div style="font:800 20px Inter;margin-bottom:4px">Validador de puerta</div>
+      <div style="font:400 12.5px Inter;color:#71717A;margin-bottom:22px">Scanner de QR dinámico + verificación de DNI. Cada resultado queda en bitácora.</div>
+      <div style="display:flex;gap:26px;flex-wrap:wrap;align-items:flex-start">
+        <div style="width:330px;border-radius:34px;background:#1D184C;padding:12px;box-shadow:0 18px 50px rgba(29,24,76,.28)">
+          <div style="background:#0e0b28;border-radius:26px;padding:16px;color:#fff">
+            <div style="display:flex;justify-content:space-between;font:600 10.5px 'JetBrains Mono',monospace;opacity:.5;margin-bottom:14px"><span>PUERTA PRINCIPAL</span><span>{{ clock }}</span></div>
+            <div style="aspect-ratio:1;border-radius:18px;background:#000;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
+              <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,255,255,.05) 0 2px,transparent 2px 8px)"></div>
+              <div style="width:62%;aspect-ratio:1;border:2px solid #00D4C4;border-radius:14px;box-shadow:0 0 0 999px rgba(0,0,0,.35);animation:fvpulse 1.6s ease-in-out infinite"></div>
+              <div style="position:absolute;bottom:14px;font:600 10.5px 'JetBrains Mono',monospace;color:rgba(255,255,255,.6)">ENFOCA EL QR DE LA WALLET</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:14px">
+              <button style="flex:1;background:#00D4C4;color:#04322f;border:none;padding:11px;border-radius:11px;font:700 12.5px Inter;cursor:pointer">Escanear QR</button>
+              <button style="flex:1;background:rgba(255,255,255,.1);color:#fff;border:none;padding:11px;border-radius:11px;font:700 12.5px Inter;cursor:pointer">Modo DNI</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex:1;min-width:360px;display:flex;flex-direction:column;gap:12px">
+          <sc-for list="{{ gateResults }}" as="g" hint-placeholder-count="4">
+            <div style="border:1.5px solid {{ g.border }};background:{{ g.bg }};border-radius:14px;padding:16px 18px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <div style="font:800 15px Inter;color:{{ g.fg }};letter-spacing:-.2px">{{ g.title }}</div>
+                <div style="font:600 12px 'JetBrains Mono',monospace;color:{{ g.fg }};opacity:.8">{{ g.time }}</div>
+              </div>
+              <div style="font:500 12.5px Inter;color:#3f3f46">{{ g.line1 }}</div>
+              <div style="font:400 12px Inter;color:#71717A">{{ g.line2 }}</div>
+            </div>
+          </sc-for>
+          <div style="background:#fff;border:1px solid #E4E4E7;border-radius:14px;padding:16px 18px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:14px">
+            <div><div style="font:800 20px 'JetBrains Mono',monospace">1,284</div><div style="font:500 11px Inter;color:#71717A">Ingresos validados</div></div>
+            <div><div style="font:800 20px 'JetBrains Mono',monospace;color:#c47c00">17</div><div style="font:500 11px Inter;color:#71717A">Revisión manual</div></div>
+            <div><div style="font:800 20px 'JetBrains Mono',monospace;color:#FF4D6D">6</div><div style="font:500 11px Inter;color:#71717A">Denegados</div></div>
+            <div><div style="font:800 20px 'JetBrains Mono',monospace">92%</div><div style="font:500 11px Inter;color:#71717A">Aforo ocupado</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ══ DASHBOARD ORGANIZADOR ══ -->
+    <sc-if value="{{ isOrg }}" hint-placeholder-val="{{ false }}">
+    <div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px;margin-bottom:20px">
+        <div>
+          <div style="font:800 20px Inter">K-Pop Fest 2026 · Panel del organizador</div>
+          <div style="font:400 12.5px Inter;color:#71717A">Andes Live SAC · evento publicado · 28 de agosto</div>
+        </div>
+        <div style="display:flex;gap:9px">
+          <button style="background:#fff;border:1.5px solid #E4E4E7;padding:9px 16px;border-radius:9px;font:600 12.5px Inter;cursor:pointer">Cortesías</button>
+          <button style="background:#1D184C;color:#fff;border:none;padding:9px 16px;border-radius:9px;font:600 12.5px Inter;cursor:pointer">Reporte de asistentes</button>
+        </div>
+      </div>
+
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px">
+        <sc-for list="{{ metrics }}" as="m" hint-placeholder-count="4">
+          <div style="background:#fff;border:1px solid #E4E4E7;border-radius:14px;padding:16px">
+            <div style="font:500 11.5px Inter;color:#71717A;margin-bottom:6px">{{ m.label }}</div>
+            <div style="font:800 24px 'JetBrains Mono',monospace;color:{{ m.color }}">{{ m.value }}</div>
+            <div style="font:500 11px Inter;color:#71717A;margin-top:4px">{{ m.sub }}</div>
+          </div>
+        </sc-for>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start">
+        <div style="background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:20px">
+          <div style="font:700 14px Inter;margin-bottom:16px">Ventas por fase</div>
+          <div style="display:flex;flex-direction:column;gap:14px">
+            <sc-for list="{{ phases }}" as="p" hint-placeholder-count="4">
+              <div>
+                <div style="display:flex;justify-content:space-between;font:600 12.5px Inter;margin-bottom:5px"><span>{{ p.name }}</span><span style="font-family:'JetBrains Mono',monospace">{{ p.amount }}</span></div>
+                <div style="height:9px;border-radius:5px;background:#F4F4F5;overflow:hidden"><div style="height:100%;border-radius:5px;background:{{ p.color }};width:{{ p.width }}"></div></div>
+                <div style="font:400 11px Inter;color:#71717A;margin-top:4px">{{ p.tickets }}</div>
+              </div>
+            </sc-for>
+          </div>
+          <div style="border-top:1px solid #E4E4E7;margin-top:18px;padding-top:16px">
+            <div style="font:700 14px Inter;margin-bottom:12px">Resumen financiero</div>
+            <div style="display:flex;flex-direction:column;gap:8px;font:500 13px Inter">
+              <div style="display:flex;justify-content:space-between"><span>Ventas brutas</span><span style="font-family:'JetBrains Mono',monospace">S/ 48,500.00</span></div>
+              <div style="display:flex;justify-content:space-between;color:#71717A"><span>Comisión Feventi (6%)</span><span style="font-family:'JetBrains Mono',monospace;color:#FF4D6D">− S/ 2,910.00</span></div>
+              <div style="display:flex;justify-content:space-between;color:#71717A"><span>Devoluciones</span><span style="font-family:'JetBrains Mono',monospace;color:#FF4D6D">− S/ 300.00</span></div>
+              <div style="display:flex;justify-content:space-between;border-top:1px solid #E4E4E7;padding-top:10px"><strong>Neto estimado a liquidar</strong><strong style="font-family:'JetBrains Mono',monospace">S/ 45,290.00</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <aside style="display:flex;flex-direction:column;gap:14px">
+          <div style="background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:20px">
+            <div style="font:700 14px Inter;margin-bottom:14px">Liquidación 30 / 40 / 30</div>
+            <div style="display:flex;flex-direction:column;gap:14px">
+              <sc-for list="{{ tranches }}" as="t" hint-placeholder-count="3">
+                <div style="display:flex;gap:12px">
+                  <div style="display:flex;flex-direction:column;align-items:center"><span style="width:11px;height:11px;border-radius:50%;background:{{ t.dot }}"></span><span style="flex:1;width:2px;background:#E4E4E7;margin-top:3px"></span></div>
+                  <div style="padding-bottom:4px">
+                    <div style="font:700 12.5px Inter">{{ t.name }}</div>
+                    <div style="font:600 12.5px 'JetBrains Mono',monospace;color:#1D184C">{{ t.amount }}</div>
+                    <div style="font:400 11.5px Inter;color:#71717A">{{ t.status }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+          <div style="background:#1D184C;color:#fff;border-radius:16px;padding:20px">
+            <div style="font:700 13px Inter;margin-bottom:12px">Cortesías</div>
+            <div style="display:flex;flex-direction:column;gap:10px;font:500 12px Inter">
+              <div style="display:flex;justify-content:space-between"><span style="opacity:.7">Bolsa prensa</span><span>34 / 50 reclamadas</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="opacity:.7">Bolsa sponsor</span><span>80 / 120 reclamadas</span></div>
+              <div style="display:flex;justify-content:space-between"><span style="opacity:.7">Bolsa venue</span><span>12 / 30 reclamadas</span></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+    </sc-if>
+
+    <!-- ══ ADMIN ══ -->
+    <sc-if value="{{ isAdmin }}" hint-placeholder-val="{{ false }}">
+    <div style="display:grid;grid-template-columns:1fr 400px;gap:22px;align-items:start">
+      <div>
+        <div style="font:800 20px Inter;margin-bottom:4px">Solicitudes de evento</div>
+        <div style="font:400 12.5px Inter;color:#71717A;margin-bottom:18px">Revisión admin antes de publicar. Ninguna solicitud pasa a venta sin aprobación.</div>
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ requests }}" as="q" hint-placeholder-count="5">
+            <div style="background:#fff;border:1px solid #E4E4E7;border-radius:13px;padding:15px 17px;display:flex;align-items:center;gap:14px">
+              <div style="flex:1">
+                <div style="display:flex;align-items:center;gap:9px;margin-bottom:3px">
+                  <span style="font:600 11px 'JetBrains Mono',monospace;color:#71717A">{{ q.id }}</span>
+                  <span style="font:700 13.5px Inter">{{ q.name }}</span>
+                </div>
+                <div style="font:400 11.5px Inter;color:#71717A">{{ q.meta }}</div>
+                <sc-if value="{{ q.note }}" hint-placeholder-val="{{ false }}">
+                  <div style="font:500 11.5px Inter;color:#c47c00;margin-top:5px">{{ q.note }}</div>
+                </sc-if>
+              </div>
+              <span style="padding:5px 11px;border-radius:20px;background:{{ q.badgeBg }};color:{{ q.badgeFg }};font:700 11px Inter;white-space:nowrap">{{ q.status }}</span>
+              <button style="background:#F4F4F5;border:none;padding:9px 15px;border-radius:9px;font:600 12px Inter;cursor:pointer">Revisar</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+
+      <aside style="display:flex;flex-direction:column;gap:14px;position:sticky;top:110px">
+        <div style="background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:20px">
+          <div style="font:700 14px Inter;margin-bottom:14px">Checklist de la solicitud REQ-002</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ checklist }}" as="c" hint-placeholder-count="6">
+              <div style="display:flex;align-items:center;gap:10px;font:500 12.5px Inter;color:{{ c.color }}">
+                <span style="width:16px;height:16px;border-radius:5px;background:{{ c.dot }};flex:none"></span>{{ c.label }}
+              </div>
+            </sc-for>
+          </div>
+          <div style="display:flex;gap:9px;margin-top:18px">
+            <button style="flex:1;background:#00D4C4;color:#04322f;border:none;padding:11px;border-radius:10px;font:700 12.5px Inter;cursor:pointer">Aprobar</button>
+            <button style="flex:1;background:#fff;border:1.5px solid #FFB07A;color:#c47c00;padding:11px;border-radius:10px;font:700 12.5px Inter;cursor:pointer">Pedir info</button>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid #E4E4E7;border-radius:16px;padding:20px">
+          <div style="font:700 14px Inter;margin-bottom:12px">Soporte — casos abiertos</div>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <sc-for list="{{ cases }}" as="s" hint-placeholder-count="3">
+              <div style="border:1px solid #E4E4E7;border-radius:11px;padding:12px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:3px">
+                  <span style="font:600 12px 'JetBrains Mono',monospace">{{ s.id }}</span>
+                  <span style="padding:3px 9px;border-radius:20px;background:{{ s.pBg }};color:{{ s.pFg }};font:700 10.5px Inter">{{ s.priority }}</span>
+                </div>
+                <div style="font:600 12.5px Inter">{{ s.type }}</div>
+                <div style="font:400 11.5px Inter;color:#71717A">{{ s.meta }}</div>
+              </div>
+            </sc-for>
+          </div>
+        </div>
+      </aside>
+    </div>
+    </sc-if>
+
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;serviceChargeMode&quot;:{&quot;editor&quot;:&quot;enum&quot;,&quot;options&quot;:[&quot;Fan paga el cargo&quot;,&quot;Organizador absorbe&quot;],&quot;default&quot;:&quot;Fan paga el cargo&quot;,&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Reglas de negocio&quot;},&quot;qrRotationSeconds&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:30,&quot;min&quot;:10,&quot;max&quot;:60,&quot;unit&quot;:&quot;s&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Reglas de negocio&quot;},&quot;showSocialSignals&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Reglas de negocio&quot;}}">
+class Component extends DCLogic {
+  state = { role: 'fan', section: 'catalog', secs: 24, tick: 0 };
+
+  componentDidMount() {
+    this._t = setInterval(() => this.setState(s => {
+      const rot = this.props.qrRotationSeconds ?? 30;
+      const n = s.secs <= 1 ? rot : s.secs - 1;
+      return { secs: n, tick: s.tick + (s.secs <= 1 ? 1 : 0) };
+    }), 1000);
+  }
+  componentWillUnmount() { clearInterval(this._t); }
+
+  nav() {
+    return {
+      fan: [['catalog','Catálogo'],['event','Evento'],['checkout','Checkout'],['wallet','Wallet · QR'],['resale','Reventa oficial']],
+      organizer: [['org','Dashboard del evento']],
+      staff: [['gate','Validador de puerta']],
+      admin: [['admin','Solicitudes y soporte']]
+    }[this.state.role];
+  }
+
+  setRole(r) {
+    const first = { fan:'catalog', organizer:'org', staff:'gate', admin:'admin' }[r];
+    this.setState({ role: r, section: first });
+  }
+
+  qr() {
+    const seed = this.state.tick * 977 + 13;
+    return Array.from({ length: 81 }, (_, i) => {
+      const v = (seed + i * 37 + Math.floor(i / 9) * 53) % 7;
+      const corner = (i % 9 < 3 && i < 27) || (i % 9 > 5 && i < 27) || (i % 9 < 3 && i > 53);
+      return { bg: corner ? (((i % 9) % 2 === 0) ? '#09090B' : '#fff') : (v < 3 ? '#09090B' : '#fff') };
+    });
+  }
+
+  renderVals() {
+    const s = this.state;
+    const fanPays = (this.props.serviceChargeMode ?? 'Fan paga el cargo') === 'Fan paga el cargo';
+    const rot = this.props.qrRotationSeconds ?? 30;
+    const social = this.props.showSocialSignals ?? true;
+
+    const roles = [['fan','Fan'],['organizer','Organizador'],['staff','Staff'],['admin','Admin']].map(([id,label]) => ({
+      label, bg: s.role === id ? '#FF4D6D' : 'rgba(255,255,255,.12)', fg: '#fff',
+      onClick: () => this.setRole(id)
+    }));
+
+    const navItems = this.nav().map(([id,label]) => ({
+      label, bd: s.section === id ? '#FF4D6D' : 'transparent',
+      fg: s.section === id ? '#fff' : 'rgba(255,255,255,.65)',
+      onClick: () => this.setState({ section: id })
+    }));
+
+    const g = ['linear-gradient(135deg,#2d1b69,#1e3a5f)','linear-gradient(135deg,#7c2d12,#881337)','linear-gradient(135deg,#134e4a,#1e3a5f)','linear-gradient(135deg,#713f12,#451a03)','linear-gradient(135deg,#1c1917,#44403c)','linear-gradient(135deg,#052e16,#14532d)'];
+    const catalog = [
+      { name:'K-Pop Fest 2026', venue:'Estadio Nacional · Lima', date:'28 de agosto', price:'S/ 40', phase:'Preventa 1', tag:'Alta demanda', tagBg:'rgba(255,77,109,.9)', tagFg:'#fff', grad:g[0], social: social ? '3 amigos quieren ir' : '' },
+      { name:'Festival Shonen', venue:'Centro de Convenciones · Lima', date:'20 de junio', price:'S/ 50', phase:'Preventa 2', tag:'Pocas entradas', tagBg:'rgba(255,176,122,.95)', tagFg:'#5c3a10', grad:g[1], social: social ? '5 amigos van' : '' },
+      { name:'Obra: El Final', venue:'Teatro Municipal · Lima', date:'15 de julio', price:'S/ 45', phase:'Regular', tag:'Sin reventa', tagBg:'rgba(0,0,0,.5)', tagFg:'#fff', grad:g[2], social:'' },
+      { name:'Feria Gastronómica Costa', venue:'Costa Verde · Lima', date:'4 de octubre', price:'S/ 25', phase:'Preventa 1', tag:'Nuevo', tagBg:'rgba(155,140,255,.95)', tagFg:'#2b2260', grad:g[3], social:'' },
+      { name:'Noche de Stand Up', venue:'Comedy Club · Arequipa', date:'20 de noviembre', price:'S/ 40', phase:'Preventa FanPass', tag:'FanPass', tagBg:'rgba(155,140,255,.95)', tagFg:'#2b2260', grad:g[4], social:'' },
+      { name:'Final Liga Urbana', venue:'Coliseo Metropolitano · Lima', date:'12 de setiembre', price:'S/ 60', phase:'Regular', tag:'Disponible', tagBg:'rgba(0,212,196,.95)', tagFg:'#04322f', grad:g[5], social: social ? '2 amigos quieren ir' : '' }
+    ];
+
+    const fee = p => fanPays ? ' + S/ ' + (p * 0.06).toFixed(2) + ' cargo' : 'Cargo incluido';
+    const zones = [
+      { name:'General — de pie', stock:'800 disponibles · Preventa 1', note:'Sin numeración', total: fanPays ? 'S/ 42.40' : 'S/ 40.00', breakdown: 'Base S/ 40.00' + (fanPays ? ' + cargo 6%' : ' · cargo absorbido'), border:'#E4E4E7', bg:'#fff', btnBg:'#FF4D6D', btnFg:'#fff', cta:'Comprar', cursor:'pointer' },
+      { name:'Platea — butacas', stock:'200 disponibles · segmentos de precio', note:'Numerada por fila y asiento', total: fanPays ? 'S/ 127.20' : 'S/ 120.00', breakdown:'Desde S/ 120.00', border:'#FF4D6D', bg:'#fff5f6', btnBg:'#FF4D6D', btnFg:'#fff', cta:'Elegir asiento', cursor:'pointer' },
+      { name:'VIP', stock:'Agotado en Preventa 1', note:'Se libera stock en Preventa 2', total:'S/ 300.00', breakdown:'Precio regular', border:'#E4E4E7', bg:'#FAFAFA', btnBg:'#E4E4E7', btnFg:'#a1a1aa', cta:'Agotado', cursor:'not-allowed' }
+    ];
+    const segments = [
+      { rows:'Filas A–C', price:'S/ 180.00', stock:'3 disponibles' },
+      { rows:'Filas D–H', price:'S/ 150.00', stock:'12 disponibles' },
+      { rows:'Filas I–M', price:'S/ 120.00', stock:'45 disponibles' }
+    ];
+
+    const steps = ['Zona','Asientos','Datos','Pago','Wallet'].map((label, i) => {
+      const active = i === 2, done = i < 2;
+      return { label, n: String(i + 1),
+        bg: active ? '#1D184C' : done ? '#e0faf8' : '#F4F4F5',
+        fg: active ? '#fff' : done ? '#0a8a80' : '#a1a1aa',
+        dot: active ? '#FF4D6D' : done ? '#00D4C4' : '#E4E4E7',
+        dotFg: active ? '#fff' : done ? '#04322f' : '#71717A' };
+    });
+
+    const summary = fanPays ? [
+      { label:'Platea B-5 · Preventa 1', value:'S/ 120.00', color:'#09090B' },
+      { label:'Platea B-6 · Preventa 1', value:'S/ 120.00', color:'#09090B' },
+      { label:'Descuento BBVA (15%)', value:'− S/ 36.00', color:'#0a8a80' },
+      { label:'Cargo de servicio Feventi (6%)', value:'S/ 12.24', color:'#71717A' }
+    ] : [
+      { label:'Platea B-5 · Preventa 1', value:'S/ 120.00', color:'#09090B' },
+      { label:'Platea B-6 · Preventa 1', value:'S/ 120.00', color:'#09090B' },
+      { label:'Descuento BBVA (15%)', value:'− S/ 36.00', color:'#0a8a80' },
+      { label:'Cargo de servicio · absorbido por el organizador', value:'S/ 0.00', color:'#71717A' }
+    ];
+
+    const walletTickets = [
+      { name:'Festival Shonen', meta:'20 de junio · General · FVT-2026-K2M8P1', badge:'QR activo', badgeBg:'#e0faf8', badgeFg:'#0a8a80', grad:g[1] },
+      { name:'Obra: El Final', meta:'15 de julio · Platea · FVT-2026-T7X4L2', badge:'QR desde el 1 de julio', badgeBg:'#F4F4F5', badgeFg:'#52525b', grad:g[2] },
+      { name:'Final Liga Urbana', meta:'12 de setiembre · Occidente · publicada en reventa', badge:'QR inhabilitado', badgeBg:'#fff3e0', badgeFg:'#c47c00', grad:g[5] }
+    ];
+
+    const listings = [
+      { name:'K-Pop Fest 2026 — General', meta:'28 de agosto · Estadio Nacional', seller:'Nicolás R. · nivel Generoso', count:'Reventa 1 de 2', price:'S/ 100.00', original:'S/ 100.00', grad:g[0] },
+      { name:'Festival Shonen — VIP', meta:'20 de junio · Centro de Convenciones', seller:'María P. · nivel Solidario', count:'Reventa 1 de 2', price:'S/ 118.00', original:'S/ 120.00', grad:g[1] },
+      { name:'Final Liga Urbana — Occidente', meta:'12 de setiembre · Coliseo Metropolitano', seller:'Diego T. · nivel Miembro', count:'Reventa 2 de 2 · última', price:'S/ 150.00', original:'S/ 150.00', grad:g[5] }
+    ];
+
+    const gateResults = [
+      { title:'ACCESO PERMITIDO', time:'20:31:45', line1:'Platea · Fila B-5 · FVT-2026-A3B7K9', line2:'Titular verificado con DNI · +50 puntos por check-in', border:'#00D4C4', bg:'#f0fdfc', fg:'#0a8a80' },
+      { title:'REVISAR MANUALMENTE', time:'20:30:58', line1:'Ticket válido, sin nominar · FVT-2026-M4P2R7', line2:'Modo flexible — solicita documento al asistente', border:'#FFB07A', bg:'#fff9f0', fg:'#c47c00' },
+      { title:'YA UTILIZADO', time:'20:30:12', line1:'Primer ingreso 20:29:13 · Puerta Principal', line2:'FVT-2026-Q8N1V5 · escalar a supervisor', border:'#FF4D6D', bg:'#fff5f6', fg:'#c9203f' },
+      { title:'ACCESO DENEGADO', time:'20:28:40', line1:'QR inválido o expirado — probable captura de pantalla', line2:'Solicita abrir la wallet en la app de Feventi', border:'#FF4D6D', bg:'#fff5f6', fg:'#c9203f' }
+    ];
+
+    const metrics = [
+      { label:'Entradas vendidas', value:'1,010', sub:'de 1,400 aforo', color:'#09090B' },
+      { label:'Ventas brutas', value:'S/ 48.5k', sub:'+12% vs. semana pasada', color:'#09090B' },
+      { label:'Neto estimado', value:'S/ 45.3k', sub:'después de comisión 6%', color:'#0a8a80' },
+      { label:'Cortesías reclamadas', value:'126', sub:'de 200 emitidas', color:'#5b4ccc' }
+    ];
+    const phases = [
+      { name:'Preventa 1', amount:'S/ 11,360', tickets:'284 entradas', width:'52%', color:'#00D4C4' },
+      { name:'Preventa 2', amount:'S/ 25,600', tickets:'512 entradas', width:'93%', color:'#1D184C' },
+      { name:'Regular', amount:'S/ 11,160', tickets:'186 entradas', width:'41%', color:'#FF4D6D' },
+      { name:'Preventa FanPass', amount:'S/ 980', tickets:'28 entradas', width:'9%', color:'#9B8CFF' }
+    ];
+    const tranches = [
+      { name:'Tramo 1 — 30%', amount:'S/ 13,587.00', status:'Pendiente · trigger: cierre de preventa', dot:'#00D4C4' },
+      { name:'Tramo 2 — 40%', amount:'S/ 18,116.00', status:'Programado · 48 h post-evento', dot:'#FFB07A' },
+      { name:'Tramo 3 — 30%', amount:'S/ 13,587.00', status:'Retenido · cierre de incidencias', dot:'#E4E4E7' }
+    ];
+
+    const requests = [
+      { id:'REQ-001', name:'Concierto Jazz Lima', meta:'Jazz Perú SAC · 15 de agosto · enviada el 01/06', status:'En revisión', badgeBg:'#fff3e0', badgeFg:'#c47c00', note:'' },
+      { id:'REQ-002', name:'Festival Gastronómico Miraflores', meta:'Food Events · 20 de setiembre · enviada el 28/05', status:'Requiere info', badgeBg:'#ffe4e9', badgeFg:'#c9203f', note:'Falta plano del venue y detalle de zonas.' },
+      { id:'REQ-003', name:'Show de Humor Arequipa', meta:'Risas SAC · 10 de octubre · enviada el 20/05', status:'Aprobada', badgeBg:'#e0faf8', badgeFg:'#0a8a80', note:'' },
+      { id:'REQ-004', name:'Teatro Independiente — temporada', meta:'Escena Sur · 5 de noviembre · enviada el 18/05', status:'En setup', badgeBg:'#ede9ff', badgeFg:'#5b4ccc', note:'' },
+      { id:'REQ-005', name:'Expo Anime Norte', meta:'Neko Producciones · 12 de diciembre · borrador', status:'Borrador', badgeBg:'#F4F4F5', badgeFg:'#71717A', note:'' }
+    ];
+    const checklist = [
+      ['Datos generales', 1],['Organizador y RUC', 1],['Venue / plano', 0],['Fechas y funciones', 1],['Zonas y fases de precio', 0],['Cortesías y bolsas', 2]
+    ].map(([label, st]) => ({ label, dot: st === 1 ? '#00D4C4' : st === 0 ? '#FFB07A' : '#E4E4E7', color: st === 2 ? '#a1a1aa' : '#09090B' }));
+    const cases = [
+      { id:'#1042', type:'QR inválido en puerta', meta:'K-Pop Fest · hace 2 horas', priority:'Alta', pBg:'#ffe4e9', pFg:'#c9203f' },
+      { id:'#1039', type:'Reventa no acreditada', meta:'Festival Shonen · hace 6 horas', priority:'Media', pBg:'#fff3e0', pFg:'#c47c00' },
+      { id:'#1035', type:'Cambio de titularidad', meta:'Obra: El Final · ayer', priority:'Baja', pBg:'#F4F4F5', pFg:'#71717A' }
+    ];
+
+    return {
+      roles, navItems,
+      roleSubtitle: { fan:'Fan · @vale_demo', organizer:'Organizador · Andes Live SAC', staff:'Staff · Puerta Principal', admin:'Admin Feventi' }[s.role],
+      isCatalog: s.section === 'catalog', isEvent: s.section === 'event', isCheckout: s.section === 'checkout',
+      isWallet: s.section === 'wallet', isResale: s.section === 'resale', isGate: s.section === 'gate',
+      isOrg: s.section === 'org', isAdmin: s.section === 'admin',
+      goEvent: () => this.setState({ section:'event' }),
+      goCheckout: () => this.setState({ section:'checkout' }),
+      goWallet: () => this.setState({ section:'wallet' }),
+      showSocial: social,
+      catalog, zones, segments, steps, summary,
+      total: fanPays ? 'S/ 216.24' : 'S/ 204.00',
+      qrCells: this.qr(), qrCountdown: s.secs + 's', qrProgress: Math.round((s.secs / rot) * 100) + '%',
+      clock: '20:31:' + String(s.secs).padStart(2, '0'),
+      walletTickets, listings, gateResults, metrics, phases, tranches, requests, checklist, cases
+    };
+  }
+}
+</script>
+</body>
+</html>
