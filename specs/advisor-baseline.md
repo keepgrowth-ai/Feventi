@@ -8,14 +8,15 @@ qué**, para que la comprobación sea un diff y no una lectura completa cada vez
 aceptado si está en la tabla de abajo. Uno que no esté es un hallazgo nuevo y hay que
 resolverlo o justificarlo aquí en el mismo commit.
 
-Última corrida: **007 Solicitud y aprobación** · seguridad 0 `ERROR` · rendimiento 0 `WARN`.
+Última corrida: **003 Detalle de evento** · seguridad 0 `ERROR` · rendimiento 0 `WARN`.
 
 ## Aceptados — rendimiento
 
 | nivel | hallazgo | por qué se acepta |
 |---|---|---|
-| INFO | `unindexed_foreign_keys` en `organizer_members.invited_by`, `organizers.approved_by`, `events.created_by`, `venues.created_by`, `event_review_notes.actor_id` | **YAGNI.** Son columnas de auditoría: nadie consulta «qué organizadores aprobó tal Admin». Un índice ahí solo aceleraría el chequeo de FK al borrar un `profile`, sobre tablas que van a tener cientos de filas, no millones. Se indexa el día que exista una pantalla que filtre por ellas. |
-| INFO | `unused_index` en `organizers_status_idx`, `venues_city_idx`, `events_public_idx` | Están sin usar porque **no hay datos**. Cada uno tiene su caso: `organizers_status` y `venues_city` los usan las pantallas de 007, y `events_public_idx` es el índice parcial del catálogo de 002, que todavía no existe. Se revisan con tráfico real; el que siga sin usarse, se borra. |
+| INFO | `unindexed_foreign_keys` en columnas de auditoría (`*.created_by`, `organizers.approved_by`, `organizer_members.invited_by`, `event_review_notes.actor_id`) | **YAGNI.** Son columnas de auditoría: nadie consulta «qué organizadores aprobó tal Admin». Un índice ahí solo aceleraría el chequeo de FK al borrar un `profile`, sobre tablas que van a tener cientos de filas, no millones. Se indexa el día que exista una pantalla que filtre por ellas. |
+| INFO | `unindexed_foreign_keys` en `price_tiers (zone_id, segment_id)`, `seats (zone_id, …)` y `zone_segments (zone_id, …)` | **Ya están cubiertos.** Postgres usa un índice compuesto para una búsqueda por su primera columna, y existe un índice que empieza por `zone_id` en las tres tablas. El linter no comprueba prefijos. El que **sí** faltaba —`price_tiers (phase_id)`— se añadió en `0026`. |
+| INFO | `unused_index` en `organizers_status_idx`, `venues_city_idx`, `events_public_idx`, `seats_segment_idx`, `zone_segments_zone_idx` | Están sin usar porque **no hay datos**. Cada uno tiene su caso: `organizers_status` y `venues_city` los usan las pantallas de 007, `events_public_idx` es el índice parcial del catálogo de 002 y `seats_segment_idx` lo usará el selector de asientos de 004. Se revisan con tráfico real; el que siga sin usarse, se borra. |
 
 ## Aceptados — seguridad
 
@@ -44,3 +45,10 @@ Encontrado a mano, y por eso vale anotarlo:
   RLS**. Cerrado en `0009` y cubierto por **AC-29**. El linter no lo reporta.
 - **`revoke select (col)` que no hace nada** porque existe un `grant select` de tabla.
   Silencioso: no da error ni aviso, simplemente no protege. Cubierto por **AC-10**.
+- **Una vista `security_invoker = false` salta la RLS**, así que su `where` es la única
+  protección que queda. El linter no dice nada sobre lo que filtra. `v_event_public` es
+  la única así, y sus condiciones están cubiertas por siete comprobaciones de 003, una
+  por estado y visibilidad.
+- **En esa misma vista, el `EXECUTE` de una función se comprueba contra quien
+  consulta**, no contra el dueño — al contrario que los privilegios de tabla. Se
+  descubrió con un 42501 en tiempo de ejecución, no con el linter (`0025`).

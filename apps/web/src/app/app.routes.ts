@@ -32,10 +32,14 @@ export const routes: Routes = [
         path: 'inicio',
         loadComponent: () => import('./features/home.page').then((m) => m.HomePage),
       },
+      {
+        path: 'eventos/:slug',
+        loadComponent: () =>
+          import('./features/publico/evento.page').then((m) => m.EventoPublicoPage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'inicio' },
 
       // 002  path: 'eventos'              catálogo público
-      // 003  path: 'eventos/:slug'        detalle de evento
       // 004  path: 'comprar/:orderId'     checkout        canActivate: [authGuard]
       // 005  path: 'entradas'             wallet y QR     canActivate: [authGuard]
       // 009  path: 'soporte'              mis casos       canActivate: [authGuard]
@@ -54,13 +58,17 @@ export const routes: Routes = [
           import('./features/organizador/solicitudes.page').then((m) => m.OrgSolicitudesPage),
       },
       {
+        path: 'eventos/:id/zonas',
+        loadComponent: () =>
+          import('./features/organizador/zonas.page').then((m) => m.OrgZonasPage),
+      },
+      {
         path: 'eventos/:id',
         loadComponent: () =>
           import('./features/organizador/evento-form.page').then((m) => m.OrgEventoFormPage),
       },
       { path: '', pathMatch: 'full', redirectTo: 'eventos' },
 
-      // 003  path: 'eventos/:id/zonas'    zonas, fases y precios
       // 008  path: 'eventos/:id/panel'    dashboard del evento
     ],
   },

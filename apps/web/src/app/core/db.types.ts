@@ -373,9 +373,248 @@ export type Database = {
           },
         ];
       };
+      zones: {
+        Row: {
+          id: string;
+          event_id: string;
+          name: string;
+          kind: Database['public']['Enums']['zone_kind'];
+          numbered: boolean;
+          capacity: number;
+          notes: string | null;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          name: string;
+          kind: Database['public']['Enums']['zone_kind'];
+          numbered?: boolean;
+          capacity: number;
+          notes?: string | null;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['zones']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'zones_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      zone_segments: {
+        Row: {
+          id: string;
+          zone_id: string;
+          /** Siempre 'seated'. Existe para la FK compuesta contra zones(id, kind). */
+          zone_kind: Database['public']['Enums']['zone_kind'];
+          label: string;
+          row_from: string | null;
+          row_to: string | null;
+          sort_order: number;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          zone_id: string;
+          zone_kind?: Database['public']['Enums']['zone_kind'];
+          label: string;
+          row_from?: string | null;
+          row_to?: string | null;
+          sort_order?: number;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['zone_segments']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'zone_segments_zone_id_fkey';
+            columns: ['zone_id'];
+            isOneToOne: false;
+            referencedRelation: 'zones';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      price_phases: {
+        Row: {
+          id: string;
+          event_id: string;
+          name: string;
+          kind: Database['public']['Enums']['phase_kind'];
+          starts_at: string;
+          ends_at: string;
+          sort_order: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          name: string;
+          kind?: Database['public']['Enums']['phase_kind'];
+          starts_at: string;
+          ends_at: string;
+          sort_order?: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['price_phases']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'price_phases_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      price_tiers: {
+        Row: {
+          id: string;
+          event_id: string;
+          zone_id: string;
+          segment_id: string | null;
+          phase_id: string;
+          price_cents: number;
+          currency: string;
+          stock: number;
+          /** Los mueve 004 en funciones transaccionales; el cliente los tiene revocados. */
+          reserved: number;
+          sold: number;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          event_id: string;
+          zone_id: string;
+          segment_id?: string | null;
+          phase_id: string;
+          price_cents: number;
+          currency?: string;
+          stock: number;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['price_tiers']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'price_tiers_zone_id_fkey';
+            columns: ['zone_id'];
+            isOneToOne: false;
+            referencedRelation: 'zones';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'price_tiers_phase_id_fkey';
+            columns: ['phase_id'];
+            isOneToOne: false;
+            referencedRelation: 'price_phases';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      seats: {
+        Row: {
+          id: string;
+          zone_id: string;
+          zone_kind: Database['public']['Enums']['zone_kind'];
+          segment_id: string | null;
+          row_label: string;
+          seat_number: number;
+          /** Decisión operativa del organizador, no reflejo de la venta. */
+          blocked: boolean;
+          block_reason: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          zone_id: string;
+          zone_kind?: Database['public']['Enums']['zone_kind'];
+          segment_id?: string | null;
+          row_label: string;
+          seat_number: number;
+          blocked?: boolean;
+          block_reason?: string | null;
+          created_at?: string;
+        };
+        Update: Partial<Database['public']['Tables']['seats']['Insert']>;
+        Relationships: [
+          {
+            foreignKeyName: 'seats_zone_id_fkey';
+            columns: ['zone_id'];
+            isOneToOne: false;
+            referencedRelation: 'zones';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
-    Views: { [_ in never]: never };
+    Views: {
+      /** Catálogo público. La única vista listable por `anon`. */
+      v_event_public: {
+        Row: {
+          id: string | null;
+          slug: string | null;
+          title: string | null;
+          category: string | null;
+          hero_image_url: string | null;
+          starts_at: string | null;
+          doors_at: string | null;
+          timezone: string | null;
+          capacity: number | null;
+          max_per_user: number | null;
+          resale_enabled: boolean | null;
+          featured_at: string | null;
+          venue_name: string | null;
+          venue_city: string | null;
+          organizer_name: string | null;
+          from_price_cents: number | null;
+          currency: string | null;
+          sale_open: boolean | null;
+          next_phase_starts_at: string | null;
+          available_now: number | null;
+        };
+        Relationships: [];
+      };
+      /** Disponibilidad por tier. security_invoker: la RLS se aplica dentro. */
+      v_event_availability: {
+        Row: {
+          tier_id: string | null;
+          event_id: string | null;
+          zone_id: string | null;
+          zone_name: string | null;
+          segment_id: string | null;
+          segment_label: string | null;
+          phase_id: string | null;
+          phase_name: string | null;
+          phase_active: boolean | null;
+          price_cents: number | null;
+          currency: string | null;
+          stock: number | null;
+          reserved: number | null;
+          sold: number | null;
+          available: number | null;
+        };
+        Relationships: [];
+      };
+    };
     Functions: {
+      /** Detalle público por slug: acepta `unlisted`, y por eso no es una vista. */
+      get_public_event: { Args: { p_slug: string }; Returns: Json };
+      active_phase_id: { Args: { p_event_id: string }; Returns: string | null };
+      generate_seats: {
+        Args: { p_zone_id: string; p_rows: string[]; p_per_row: number; p_segment_id?: string };
+        Returns: number;
+      };
       create_event: { Args: { p_organizer_id: string; p_title?: string }; Returns: string };
       submit_event: { Args: { p_event_id: string }; Returns: undefined };
       approve_event: { Args: { p_event_id: string; p_note?: string }; Returns: undefined };
@@ -436,6 +675,8 @@ export type Database = {
       charge_payer: 'fan' | 'organizer';
       nomination_mode: 'strict' | 'flexible';
       event_visibility: 'public' | 'unlisted' | 'private';
+      zone_kind: 'standing' | 'seated';
+      phase_kind: 'presale' | 'regular' | 'fanpass_presale';
       event_status:
         | 'draft'
         | 'pending_review'
@@ -470,6 +711,8 @@ export const Constants = {
       charge_payer: ['fan', 'organizer'],
       nomination_mode: ['strict', 'flexible'],
       event_visibility: ['public', 'unlisted', 'private'],
+      zone_kind: ['standing', 'seated'],
+      phase_kind: ['presale', 'regular', 'fanpass_presale'],
       event_status: [
         'draft',
         'pending_review',
@@ -498,7 +741,8 @@ export const Constants = {
 
 type PublicSchema = Database['public'];
 
-export type Tables<T extends keyof PublicSchema['Tables']> = PublicSchema['Tables'][T]['Row'];
+export type Tables<T extends keyof (PublicSchema['Tables'] & PublicSchema['Views'])> =
+  (PublicSchema['Tables'] & PublicSchema['Views'])[T]['Row'];
 export type TablesInsert<T extends keyof PublicSchema['Tables']> =
   PublicSchema['Tables'][T]['Insert'];
 export type TablesUpdate<T extends keyof PublicSchema['Tables']> =

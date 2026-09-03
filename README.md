@@ -27,7 +27,7 @@ aceptación verificables, después el código.
 |---|---|---|
 | 001 | Fundaciones: auth, perfiles, roles, tenencia, RLS base | ✅ **listo** — 43 comprobaciones en verde |
 | 007 | Solicitud de evento y aprobación | ✅ **listo** — 32 comprobaciones + concurrencia |
-| 003 | Detalle de evento: zonas, segmentos, fases, precios | spec listo |
+| 003 | Detalle de evento: zonas, segmentos, fases, precios | ✅ **listo** — 56 comprobaciones |
 | 002 | Catálogo público | spec listo |
 | 004 | Checkout y emisión de tickets | spec listo |
 | 005 | Wallet y QR dinámico | spec listo |
