@@ -88,6 +88,21 @@ insert into res select 'AC-26  RLS activa en toda tabla de public',
   coalesce((select string_agg(tablename, ', ') from pg_tables
              where schemaname = 'public' and not rowsecurity), 'ninguna sin RLS');
 
+-- Una sola política de SELECT por tabla y rol. Dos permisivas se evalúan las
+-- DOS en cada consulta, y el helper de Admin se ejecutaría también para los
+-- fans, que son el tráfico. Los casos se unen con OR dentro de una política.
+insert into res select 'PERF   una sola política SELECT por tabla',
+  not exists (
+    select 1 from pg_policies
+     where schemaname = 'public' and cmd = 'SELECT' and 'authenticated' = any (roles)
+     group by tablename having count(*) > 1),
+  coalesce((select string_agg(tablename || ' (' || count(*) || ')', ', ')
+              from pg_policies
+             where schemaname = 'public' and cmd = 'SELECT'
+               and 'authenticated' = any (roles)
+             group by tablename having count(*) > 1),
+           'ninguna tabla con políticas duplicadas');
+
 -- ── Como fan ────────────────────────────────────────────────────────────────
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"11111111-1111-1111-1111-111111111111","role":"authenticated"}';
