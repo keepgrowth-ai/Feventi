@@ -114,22 +114,136 @@ export class PublicEventStore {
     return (data as PublicEvent | null) ?? null;
   }
 
-  /** El catálogo lo consume 002; aquí queda listo para que lo use. */
-  async listCatalog(): Promise<readonly CatalogEvent[]> {
+  /**
+   * El catálogo. Filtros, orden y paginación por cursor.
+   *
+   * Se piden las columnas de forma explícita a propósito: `select('*')` traería
+   * `search_text`, que son kilobytes de tsvector por fila y que solo existe para
+   * filtrar.
+   */
+  async listCatalog(opts: CatalogQuery = {}): Promise<CatalogPage> {
     this.loading.set(true);
     this.error.set(null);
-    const { data, error } = await supabase
-      .from('v_event_public')
-      .select('*')
-      .order('featured_at', { ascending: false, nullsFirst: false })
-      .order('starts_at');
+
+    const limit = opts.limit ?? 24;
+    let q = supabase.from('v_event_public').select(CATALOG_COLUMNS);
+
+    if (opts.search?.trim()) {
+      // `websearch` y no `fts`: nunca falla con lo que el usuario teclee, y
+      // entiende comillas y OR. La configuración tiene que ser la MISMA del
+      // índice, o unaccent no se aplica al término buscado.
+      q = q.textSearch('search_text', opts.search.trim(), {
+        type: 'websearch',
+        config: 'spanish_unaccent',
+      });
+    }
+    if (opts.category) q = q.eq('category', opts.category);
+    if (opts.city) q = q.eq('venue_city', opts.city);
+    if (opts.from) q = q.gte('starts_at', opts.from);
+    if (opts.to) q = q.lte('starts_at', opts.to);
+    if (opts.maxPriceCents != null) q = q.lte('from_price_cents', opts.maxPriceCents);
+    if (opts.onlyAvailable) q = q.gt('available_now', 0);
+
+    if (opts.sort === 'price') {
+      q = q.order('from_price_cents', { ascending: true, nullsFirst: false }).order('id');
+    } else if (opts.sort === 'relevance') {
+      // D-01: sin algoritmo. Relevancia = destacados de Admin primero, después
+      // por fecha. Es curaduría manual y la UI no promete otra cosa.
+      q = q.order('featured_at', { ascending: false, nullsFirst: false }).order('starts_at').order('id');
+    } else {
+      q = q.order('starts_at', { ascending: true, nullsFirst: false }).order('id');
+      // Cursor keyset sobre (starts_at, id). `starts_at` NO es único —dos
+      // eventos pueden empezar a la misma hora— así que paginar solo con
+      // `.gt('starts_at')` salta eventos en cuanto hay un empate.
+      if (opts.cursor) {
+        const { at, id } = opts.cursor;
+        q = q.or(`starts_at.gt.${at},and(starts_at.eq.${at},id.gt.${id})`);
+      }
+    }
+
+    // Se pide uno más de lo que se muestra: si vuelve, hay página siguiente.
+    const { data, error } = await q.limit(limit + 1);
     this.loading.set(false);
+
     if (error) {
       this.error.set(error.message);
-      return [];
+      return { rows: [], nextCursor: null };
     }
-    return (data as CatalogEvent[] | null) ?? [];
+
+    const all = (data as CatalogEvent[] | null) ?? [];
+    const rows = all.slice(0, limit);
+    const last = rows.at(-1);
+    return {
+      rows,
+      nextCursor:
+        all.length > limit && last?.starts_at ? { at: last.starts_at, id: last.id } : null,
+    };
   }
+
+  /** Las opciones de los filtros salen de lo que hay publicado, no de una lista fija. */
+  async listFacets(): Promise<{ categories: string[]; cities: string[] }> {
+    const { data } = await supabase.from('v_event_public').select('category,venue_city');
+    const rows = (data as { category: string | null; venue_city: string | null }[] | null) ?? [];
+    return {
+      categories: [...new Set(rows.map((r) => r.category).filter((c): c is string => !!c))].sort(),
+      cities: [...new Set(rows.map((r) => r.venue_city).filter((c): c is string => !!c))].sort(),
+    };
+  }
+}
+
+/**
+ * Una sola cadena literal, sin concatenar: supabase-js parsea el `select` a
+ * nivel de tipos, y un `+` lo degrada a `string` y rompe la inferencia.
+ *
+ * Se piden las columnas explícitas para NO traer `search_text`, que son
+ * kilobytes de tsvector por fila y solo existe para filtrar.
+ */
+const CATALOG_COLUMNS =
+  'id,slug,title,category,hero_image_url,starts_at,venue_name,venue_city,organizer_name,from_price_cents,currency,sale_open,next_phase_starts_at,available_now,featured_at,max_per_user,resale_enabled' as const;
+
+export type CatalogSort = 'date' | 'price' | 'relevance';
+
+export interface CatalogCursor {
+  readonly at: string;
+  readonly id: string;
+}
+
+export interface CatalogQuery {
+  readonly search?: string;
+  readonly category?: string | null;
+  readonly city?: string | null;
+  readonly from?: string | null;
+  readonly to?: string | null;
+  readonly maxPriceCents?: number | null;
+  readonly onlyAvailable?: boolean;
+  readonly sort?: CatalogSort;
+  readonly cursor?: CatalogCursor | null;
+  readonly limit?: number;
+}
+
+export interface CatalogPage {
+  readonly rows: readonly CatalogEvent[];
+  readonly nextCursor: CatalogCursor | null;
+}
+
+/**
+ * La señal de demanda de la card. Del mockup: «Alta demanda», «Pocas entradas»,
+ * «Agotado», «Nuevo».
+ *
+ * Siempre lleva texto: el color nunca va solo (Art. 10).
+ */
+export function demandBadge(
+  e: CatalogEvent,
+): { text: string; tone: 'success' | 'warn' | 'danger' | 'info' | 'neutral' } | null {
+  if (!e.sale_open) {
+    return e.next_phase_starts_at
+      ? { text: 'Próxima fase', tone: 'neutral' }
+      : { text: 'Venta cerrada', tone: 'neutral' };
+  }
+  if (e.available_now === 0) return { text: 'Agotado', tone: 'danger' };
+  if (e.available_now <= 20) return { text: `Últimas ${e.available_now}`, tone: 'warn' };
+  if (e.featured_at) return { text: 'Destacado', tone: 'info' };
+  return { text: 'Disponible', tone: 'success' };
 }
 
 /**

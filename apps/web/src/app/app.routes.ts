@@ -29,17 +29,19 @@ export const routes: Routes = [
         loadComponent: () => import('./features/auth/sign-up.page').then((m) => m.SignUpPage),
       },
       {
-        path: 'inicio',
-        loadComponent: () => import('./features/home.page').then((m) => m.HomePage),
+        path: 'eventos',
+        loadComponent: () =>
+          import('./features/publico/catalogo.page').then((m) => m.CatalogoPage),
       },
       {
         path: 'eventos/:slug',
         loadComponent: () =>
           import('./features/publico/evento.page').then((m) => m.EventoPublicoPage),
       },
-      { path: '', pathMatch: 'full', redirectTo: 'inicio' },
+      // La raíz ES el catálogo. Una home de marca aparte, antes de tener eventos
+      // que mostrar, es una pantalla que se diseña dos veces.
+      { path: '', pathMatch: 'full', redirectTo: 'eventos' },
 
-      // 002  path: 'eventos'              catálogo público
       // 004  path: 'comprar/:orderId'     checkout        canActivate: [authGuard]
       // 005  path: 'entradas'             wallet y QR     canActivate: [authGuard]
       // 009  path: 'soporte'              mis casos       canActivate: [authGuard]

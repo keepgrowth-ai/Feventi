@@ -574,6 +574,8 @@ export type Database = {
           max_per_user: number | null;
           resale_enabled: boolean | null;
           featured_at: string | null;
+          /** Para filtrar con `textSearch`, no para seleccionar. */
+          search_text: unknown | null;
           venue_name: string | null;
           venue_city: string | null;
           organizer_name: string | null;
@@ -610,6 +612,8 @@ export type Database = {
     Functions: {
       /** Detalle público por slug: acepta `unlisted`, y por eso no es una vista. */
       get_public_event: { Args: { p_slug: string }; Returns: Json };
+      /** La consulta usa la misma configuración que el índice, o unaccent no aplica. */
+      search_events_tsquery: { Args: { p_query: string }; Returns: unknown };
       active_phase_id: { Args: { p_event_id: string }; Returns: string | null };
       generate_seats: {
         Args: { p_zone_id: string; p_rows: string[]; p_per_row: number; p_segment_id?: string };

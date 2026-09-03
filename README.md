@@ -18,7 +18,7 @@ aceptación verificables, después el código.
 | [`specs/data-model.md`](specs/data-model.md) | el schema compartido por todos los features |
 | [`specs/design-system.md`](specs/design-system.md) | color, tipografía, los tres modos visuales, patrones |
 | [`specs/decisiones-pendientes.md`](specs/decisiones-pendientes.md) | lo que aún no está decidido, con su **default seguro** |
-| [`specs/advisor-baseline.md`](specs/advisor-baseline.md) | hallazgos de seguridad aceptados, con su razón |
+| [`specs/advisor-baseline.md`](specs/advisor-baseline.md) | hallazgos del linter aceptados, cada uno con su razón |
 | [`CLAUDE.md`](CLAUDE.md) | instrucciones para trabajar en este repo |
 
 ## Estado
@@ -28,7 +28,7 @@ aceptación verificables, después el código.
 | 001 | Fundaciones: auth, perfiles, roles, tenencia, RLS base | ✅ **listo** — 43 comprobaciones en verde |
 | 007 | Solicitud de evento y aprobación | ✅ **listo** — 32 comprobaciones + concurrencia |
 | 003 | Detalle de evento: zonas, segmentos, fases, precios | ✅ **listo** — 56 comprobaciones |
-| 002 | Catálogo público | spec listo |
+| 002 | Catálogo público | ✅ **listo** — 25 comprobaciones |
 | 004 | Checkout y emisión de tickets | spec listo |
 | 005 | Wallet y QR dinámico | spec listo |
 | 006 | Validador de puerta | spec listo |
