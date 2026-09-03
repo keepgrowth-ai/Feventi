@@ -11,7 +11,7 @@ alguien tiene que atender cuando algo falla).
 | [001](001-fundaciones/spec.md) ✅ | Fundaciones: auth, perfiles, roles, tenencia, RLS base | todos | — |
 | [002](002-catalogo-publico/spec.md) ✅ | Catálogo público | Público | Catálogo |
 | [003](003-detalle-evento/spec.md) ✅ | Detalle de evento: zonas, segmentos, fases, precios | Público | Evento |
-| [004](004-checkout-emision/spec.md) | Checkout y emisión de tickets | Fan | Checkout |
+| [004](004-checkout-emision/spec.md) 🔶 | Checkout y emisión de tickets | Fan | Checkout |
 | [005](005-wallet-qr/spec.md) | Wallet y QR dinámico | Fan | Wallet · QR |
 | [006](006-validador-puerta/spec.md) | Validador de puerta | Staff | Validador |
 | [007](007-solicitud-aprobacion/spec.md) ✅ | Solicitud de evento y aprobación | Organizador + Admin | Admin: solicitudes |

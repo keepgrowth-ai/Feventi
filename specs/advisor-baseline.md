@@ -13,7 +13,7 @@ es un hallazgo nuevo y hay que resolverlo o justificarlo aquí en el mismo commi
 > obliga a elegir entre el linter y la seguridad real está mal escrita: lo que importa
 > es que ningún hallazgo quede sin mirar, no que la lista salga vacía.
 
-Última corrida: **002 Catálogo público** · seguridad 1 `ERROR` argumentado ·
+Última corrida: **004 Checkout y emisión** · seguridad 1 `ERROR` argumentado ·
 rendimiento 0 `WARN`.
 
 ## Excepciones argumentadas
@@ -26,7 +26,7 @@ rendimiento 0 `WARN`.
 
 | nivel | hallazgo | por qué se acepta |
 |---|---|---|
-| INFO | `unindexed_foreign_keys` en columnas de auditoría (`*.created_by`, `organizers.approved_by`, `organizer_members.invited_by`, `event_review_notes.actor_id`) | **YAGNI.** Son columnas de auditoría: nadie consulta «qué organizadores aprobó tal Admin». Un índice ahí solo aceleraría el chequeo de FK al borrar un `profile`, sobre tablas que van a tener cientos de filas, no millones. Se indexa el día que exista una pantalla que filtre por ellas. |
+| INFO | `unindexed_foreign_keys` en columnas de auditoría (`*.created_by`, `organizers.approved_by`, `organizer_members.invited_by`, `event_review_notes.actor_id`, `ticket_events.actor_id`, `ticket_events.corrects_id`, `tickets.original_owner_id`) | **YAGNI.** Son columnas de auditoría: nadie consulta «qué organizadores aprobó tal Admin». Un índice ahí solo aceleraría el chequeo de FK al borrar un `profile`, sobre tablas que van a tener cientos de filas, no millones. Se indexa el día que exista una pantalla que filtre por ellas. |
 | INFO | `unindexed_foreign_keys` en `price_tiers (zone_id, segment_id)`, `seats (zone_id, …)` y `zone_segments (zone_id, …)` | **Ya están cubiertos.** Postgres usa un índice compuesto para una búsqueda por su primera columna, y existe un índice que empieza por `zone_id` en las tres tablas. El linter no comprueba prefijos. El que **sí** faltaba —`price_tiers (phase_id)`— se añadió en `0026`. |
 | INFO | `unused_index` en `organizers_status_idx`, `venues_city_idx`, `events_public_idx`, `seats_segment_idx`, `zone_segments_zone_idx` | Están sin usar porque **no hay datos**. Cada uno tiene su caso: `organizers_status` y `venues_city` los usan las pantallas de 007, `events_public_idx` es el índice parcial del catálogo de 002 y `seats_segment_idx` lo usará el selector de asientos de 004. Se revisan con tráfico real; el que siga sin usarse, se borra. |
 
@@ -37,6 +37,7 @@ rendimiento 0 `WARN`.
 | INFO | `rls_enabled_no_policy` en `public.profile_identity` | **Es el diseño**, Art. 2.6 y 7.1. RLS activa y cero políticas es la forma de decir «nadie pasa». Solo `service_role` y las funciones `security definer` de nominación y puerta. Añadirle una política sería el bug. |
 | WARN | `authenticated_security_definer_function_executable` en las RPC de `public`: las 7 de 001 (`create_organizer`, `add`/`revoke_organizer_member`, `approve_organizer`, `set_organizer_status`, `set_own_dni`, `verify_dni`) y las 11 de 007 (`create_event`, `submit_event`, `approve`/`reject`/`request_event_info`, `set_event_checklist`, `publish`/`pause`/`resume`/`cancel_event`, `set_event_featured`) | **Es la superficie de RPC del producto**, y `security definer` es justo lo que las hace útiles: existen para hacer lo que una política no puede (fijar el `status` en el servidor, escribir dos filas juntas, hashear con un pepper que el llamante no ve). Cada una comprueba autorización en su propio cuerpo, y esa comprobación está cubierta por pruebas: 001/AC-17, AC-20, AC-23, AC-24, AC-07b y 007/AC-05, AC-06, AC-07, AC-12. |
 | WARN | `anon_security_definer_function_executable` en `get_public_event` y `active_phase_id` | **Son la superficie pública de 003, y `anon` las necesita.** `get_public_event(slug)` es `security definer` a propósito: exige el slug, y por eso un evento `unlisted` se abre por su enlace **sin** poder enumerarse — algo que una vista listable no puede lograr. `active_phase_id` devuelve el id de la fase activa de un evento, que es información pública del catálogo. Ninguna de las dos lee nada que no esté ya en la pantalla. |
+| WARN | `authenticated_security_definer_function_executable` en las RPC de 004 (`reserve_order`, `set_item_attendee`, `start_payment`, `fail_payment`) | **Es la superficie del checkout.** `reserve_order` existe precisamente para hacer lo que una política no puede: bloquear los tiers en orden, congelar el precio, subir el contador y calcular el cargo, todo en una transacción. `confirm_payment` **no** está en esta lista porque está revocada a `authenticated`: es del webhook (AC-29), y una prueba lo verifica. |
 | WARN | `authenticated_security_definer_function_executable` en `generate_seats` | Escribe cientos de asientos en un statement y comprueba `auth_organizer_ids()` en su cuerpo — verificado por 003/T-11b, que confirma el rechazo sobre una zona ajena y sobre una zona de pie. |
 | WARN | `auth_leaked_password_protection` | **Bloqueado por plan, no por olvido.** El chequeo contra HaveIBeenPwned es **Pro o superior**, y la organización `Keepgrowth AI` está en **free**: el interruptor no existe todavía. Mitigación disponible en free, en Authentication → Sign In / Providers → Email: subir *minimum password length* a 12 y exigir minúsculas + mayúsculas + dígitos. No es equivalente —una contraseña filtrada puede ser larga y variada— así que el chequeo real queda como requisito de producción junto al Art. 13. Ver **D-50**. |
 
@@ -58,7 +59,15 @@ Encontrado a mano, y por eso vale anotarlo:
   sobre las tablas de `public`, y `ALL` incluye `TRUNCATE`, que **no está sujeto a
   RLS**. Cerrado en `0009` y cubierto por **AC-29**. El linter no lo reporta.
 - **`revoke select (col)` que no hace nada** porque existe un `grant select` de tabla.
-  Silencioso: no da error ni aviso, simplemente no protege. Cubierto por **AC-10**.
+  Silencioso: no da error ni aviso, simplemente no protege. Cubierto por **001/AC-10**.
+- **Una función que crea una tabla temporal no es reentrante.** `reserve_order` lo era
+  hasta `0039`: llamarla dos veces en la misma transacción reventaba con
+  `relation "_items" already exists`. Por PostgREST cada RPC es su propia transacción,
+  así que el linter no lo ve y producción no lo habría visto — hasta el día en que otra
+  función la llamara dos veces. Lo destapó la suite al reservar dos veces.
+- **Un mensaje de constraint no es un mensaje de producto.** El perdedor de la carrera
+  por un asiento recibía `duplicate key value violates unique constraint`. La garantía
+  era correcta y el texto inservible. Corregido en `0037`; el linter no opina de copy.
 - **Una vista `security_invoker = false` salta la RLS**, así que su `where` es la única
   protección que queda. El linter no dice nada sobre lo que filtra. `v_event_public` es
   la única así, y sus condiciones están cubiertas por siete comprobaciones de 003, una
