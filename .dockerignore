@@ -1,0 +1,22 @@
+# Lo que NO entra en la imagen. Cada línea es tiempo de build y tamaño que no se
+# paga — y, en el caso de `.env` y `.claude`, algo que directamente no debe
+# viajar en un contenedor.
+node_modules
+**/node_modules
+dist
+**/dist
+.angular
+.git
+.github
+.claude
+.mcp.json
+docs
+specs
+supabase
+*.log
+.env
+.env.*
+Dockerfile
+.dockerignore
+README.md
+CLAUDE.md

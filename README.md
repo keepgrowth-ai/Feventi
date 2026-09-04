@@ -36,6 +36,14 @@ aceptación verificables, después el código.
 | 009 | Soporte contextual | ✅ **listo** — 32 comprobaciones, con la doble vía cerrada por índice |
 
 Orden de construcción: **001 → 007 → 003 → 002 → 004 → 005 → 006 → 008 → 009**.
+
+## Desplegar
+
+`docs/DESPLIEGUE.md` — GitHub, Cloud Run y la conexión con Supabase, paso a paso.
+
+Lo que sale de ahí es una **demo**: los pagos están en sandbox (Art. 13) y la
+base tiene datos de prueba. Lo que falta para abrir la venta real está al final
+de ese documento, y en su mayoría no es código.
 El por qué está en el roadmap.
 
 ## Estructura

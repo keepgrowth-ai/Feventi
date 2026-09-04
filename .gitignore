@@ -10,3 +10,9 @@ Thumbs.db
 !.env.example
 .vscode/*
 !.vscode/extensions.json
+
+# Credenciales de despliegue. Nunca en el repo: van en Secret Manager o en las
+# variables del servicio.
+*.json.key
+service-account*.json
+gha-creds-*.json
