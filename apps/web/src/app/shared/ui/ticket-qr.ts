@@ -26,10 +26,23 @@ import qrcode from 'qrcode-generator';
   selector: 'fv-ticket-qr',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <!-- SIN `[width]` ni `[height]` como bindings, y esto es la diferencia entre
+         que el QR se vea o no.
+
+         Asignar `canvas.width` BORRA el canvas entero — es cómo se reinicia su
+         contexto de dibujo. Con el binding, Angular escribía ese atributo
+         DESPUÉS de que el efecto hubiera pintado, así que borraba el QR recién
+         dibujado. En el refresco siguiente el atributo ya tenía el mismo valor,
+         Angular no lo tocaba, y entonces sí se veía.
+
+         El síntoma era exactamente ese: la primera vez nada, y a los 30 segundos
+         aparecía. Las dimensiones las pone ahora el propio efecto, justo antes
+         de dibujar, donde el orden está garantizado.
+
+         `style.width/height` SÍ pueden quedarse: son CSS, escalan el elemento y
+         no tocan el búfer. -->
     <canvas
       #lienzo
-      [width]="px()"
-      [height]="px()"
       class="block rounded-[--radius-inner] bg-white"
       [style.width.px]="px()"
       [style.height.px]="px()"
@@ -66,6 +79,18 @@ export class TicketQr {
       if (!ref) return;
 
       const canvas = ref.nativeElement;
+
+      // El tamaño del búfer se fija AQUÍ, no en el template. Asignarlo borra el
+      // canvas, así que tiene que ocurrir antes de pintar y no después.
+      //
+      // La comprobación evita reasignarlo cuando ya vale lo mismo: en un
+      // refresco de token el tamaño no cambia, y escribirlo igualmente borraría
+      // el QR anterior por un instante — un parpadeo cada 30 segundos.
+      if (canvas.width !== size || canvas.height !== size) {
+        canvas.width = size;
+        canvas.height = size;
+      }
+
       const ctx = canvas.getContext('2d');
       if (!ctx || !texto) return;
 
