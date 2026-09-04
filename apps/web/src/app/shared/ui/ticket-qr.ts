@@ -26,10 +26,10 @@ import qrcode from 'qrcode-generator';
   selector: 'fv-ticket-qr',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <!-- SIN `[width]` ni `[height]` como bindings, y esto es la diferencia entre
-         que el QR se vea o no.
+    <!-- Sin width ni height como bindings, y esto es la diferencia entre que el
+         QR se vea o no.
 
-         Asignar `canvas.width` BORRA el canvas entero — es cómo se reinicia su
+         Asignar canvas.width BORRA el canvas entero: es como se reinicia su
          contexto de dibujo. Con el binding, Angular escribía ese atributo
          DESPUÉS de que el efecto hubiera pintado, así que borraba el QR recién
          dibujado. En el refresco siguiente el atributo ya tenía el mismo valor,
@@ -39,8 +39,12 @@ import qrcode from 'qrcode-generator';
          aparecía. Las dimensiones las pone ahora el propio efecto, justo antes
          de dibujar, donde el orden está garantizado.
 
-         `style.width/height` SÍ pueden quedarse: son CSS, escalan el elemento y
-         no tocan el búfer. -->
+         Los de style SÍ pueden quedarse: son CSS, escalan el elemento y no tocan
+         el búfer.
+
+         (Y ojo con los acentos graves aquí dentro: el template es un template
+         literal de TypeScript y uno solo lo cierra a media frase. El error que
+         da no los menciona — dice «NG1010: template must be a string».) -->
     <canvas
       #lienzo
       class="block rounded-[--radius-inner] bg-white"
