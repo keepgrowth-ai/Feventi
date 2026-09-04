@@ -681,6 +681,54 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      /** El staff de puerta: un rol POR EVENTO, no del perfil (006). */
+      event_staff: {
+        Row: {
+          id: string;
+          event_id: string;
+          profile_id: string;
+          gate: string;
+          zone_id: string | null;
+          revoked_at: string | null;
+          revoked_by: string | null;
+          created_at: string;
+          created_by: string | null;
+        };
+        Insert: {
+          event_id: string;
+          profile_id: string;
+          gate: string;
+          zone_id?: string | null;
+        };
+        /** Solo se revoca o se corrige la puerta. Mover evento o persona reescribiría la bitácora. */
+        Update: {
+          revoked_at?: string | null;
+          revoked_by?: string | null;
+          gate?: string;
+          zone_id?: string | null;
+        };
+        Relationships: [];
+      };
+      /** Append-only, Art. 8.1. `never` en Insert/Update/Delete no es pereza: es la regla. */
+      checkins: {
+        Row: {
+          id: string;
+          event_id: string;
+          ticket_id: string | null;
+          staff_id: string;
+          event_staff_id: string | null;
+          gate: string;
+          result: Database['public']['Enums']['checkin_result'];
+          reason: Database['public']['Enums']['checkin_reason'];
+          scanned_code: string | null;
+          slot_delta: number | null;
+          meta: Json | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: {
       /** Catálogo público. La única vista listable por `anon`. */
@@ -773,8 +821,56 @@ export type Database = {
         };
         Relationships: [];
       };
+      /** Los eventos donde este usuario es staff, con su puerta y su turno ya resuelto (006/AC-06). */
+      v_my_gate_events: {
+        Row: {
+          event_id: string | null;
+          title: string | null;
+          starts_at: string | null;
+          doors_at: string | null;
+          timezone: string | null;
+          event_status: Database['public']['Enums']['event_status'] | null;
+          nomination_mode: Database['public']['Enums']['nomination_mode'] | null;
+          venue_name: string | null;
+          venue_city: string | null;
+          venue_address: string | null;
+          assignment_id: string | null;
+          gate: string | null;
+          zone_id: string | null;
+          zone_name: string | null;
+          shift_from: string | null;
+          shift_to: string | null;
+          /** Lo calcula el servidor con la MISMA regla que gate_checkin. */
+          shift_active: boolean | null;
+        };
+        Relationships: [];
+      };
+      /** El contador del turno, agregando checkins (006/AC-26). Nunca un contador incremental. */
+      v_gate_stats: {
+        Row: {
+          event_id: string | null;
+          gate: string | null;
+          scans: number | null;
+          allowed: number | null;
+          manual_review: number | null;
+          already_used: number | null;
+          denied: number | null;
+          screenshots: number | null;
+          tickets_total: number | null;
+          tickets_used: number | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
+      /**
+       * Modo DNI del validador (D-03). Devuelve nombre y últimos 4, nunca el hash.
+       *
+       * `gate_checkin` NO está aquí a propósito: es solo de `service_role`, y se
+       * llama desde la Edge Function `qr-validate`. Si apareciera en estos tipos,
+       * alguien la llamaría desde el front y se encontraría un 403 en la puerta.
+       */
+      gate_find_by_dni: { Args: { p_event_id: string; p_dni: string }; Returns: Json };
       /** Detalle público por slug: acepta `unlisted`, y por eso no es una vista. */
       get_public_event: { Args: { p_slug: string }; Returns: Json };
       /** Devuelve el id de la orden. Ver specs/004-checkout-emision/plan.md. */
@@ -865,6 +961,22 @@ export type Database = {
         | 'cancelled';
       payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded' | 'disputed';
       ticket_status: 'active' | 'listed' | 'transferred' | 'used' | 'void' | 'refunded';
+      /** Los cuatro del mockup. No hay un quinto, y el enum lo garantiza. */
+      checkin_result: 'allowed' | 'manual_review' | 'already_used' | 'denied';
+      checkin_reason:
+        | 'ok'
+        | 'not_nominated'
+        | 'wrong_zone'
+        | 'dni_mode'
+        | 'already_used'
+        | 'qr_unreadable'
+        | 'screenshot_suspected'
+        | 'wrong_event'
+        | 'event_cancelled'
+        | 'ticket_listed'
+        | 'ticket_transferred'
+        | 'ticket_void'
+        | 'ticket_refunded';
       ticket_event_action:
         | 'issued'
         | 'nominated'

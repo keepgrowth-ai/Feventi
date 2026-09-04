@@ -1,6 +1,7 @@
 import type { Routes } from '@angular/router';
 import { authGuard, guestGuard, roleGuard } from './core/auth.guard';
 import { FanLayout } from './layouts/fan.layout';
+import { GateLayout } from './layouts/gate.layout';
 import { OpsLayout } from './layouts/ops.layout';
 
 /**
@@ -109,7 +110,30 @@ export const routes: Routes = [
   },
 
   // ── Mundo Staff · modo Puerta ────────────────────────────────────────────
-  // 006  path: 'puerta'  GateLayout + roleGuard('staff')
+  //
+  // `authGuard` y NO `roleGuard('staff')`: ser staff no es un rol global, es una
+  // asignación POR EVENTO en `event_staff`. La misma persona es staff del
+  // festival del sábado y no lo es del concierto del domingo, así que no hay un
+  // rol que comprobar aquí. Quien no esté asignado a nada ve «Mis eventos»
+  // vacío, con el texto que explica por qué — y `qr-validate` le da 403 aunque
+  // llegue a la pantalla, que es donde de verdad se decide.
+  {
+    path: 'puerta',
+    component: GateLayout,
+    canActivate: [authGuard],
+    children: [
+      {
+        path: ':eventId',
+        loadComponent: () =>
+          import('./features/puerta/scanner.page').then((m) => m.GateScannerPage),
+      },
+      {
+        path: '',
+        loadComponent: () =>
+          import('./features/puerta/mis-eventos.page').then((m) => m.GateEventosPage),
+      },
+    ],
+  },
 
   { path: '**', redirectTo: '' },
 ];

@@ -13,7 +13,7 @@ es un hallazgo nuevo y hay que resolverlo o justificarlo aquí en el mismo commi
 > obliga a elegir entre el linter y la seguridad real está mal escrita: lo que importa
 > es que ningún hallazgo quede sin mirar, no que la lista salga vacía.
 
-Última corrida: **005 Wallet y QR** · seguridad 2 `ERROR` argumentados ·
+Última corrida: **006 Validador de puerta** · seguridad 4 `ERROR` argumentados ·
 rendimiento 0 `WARN`.
 
 ## Excepciones argumentadas
@@ -23,6 +23,8 @@ rendimiento 0 `WARN`.
 | **ERROR** | `security_definer_view` en `public.v_event_public` | **Es el diseño, y la alternativa es peor.** La vista corre con los privilegios de su dueño y por eso salta la RLS: es lo que permite que `anon` lea el catálogo **sin** tener acceso a `events`, `price_tiers`, `price_phases`, `zones` ni `venues`. La otra opción es `security_invoker = true` más políticas de `anon` en esas cinco tablas — y entonces `anon` las consulta **directamente** por PostgREST, con los filtros y joins que quiera, y la regla de visibilidad queda repartida en cinco sitios en lugar de uno. Eso es más superficie y más difícil de auditar, y contradice **002/AC-13**. Lo que sí exige esta decisión es que el `where` de la vista sea intocable sin pensar: está cubierto por siete comprobaciones de 003 (una por estado y visibilidad) más las de 002, y la migración lo dice en un comentario. |
 
 | **ERROR** | `security_definer_view` en `public.v_my_tickets` | **Misma razón, filtro más estrecho.** La wallet hace join con `events`, `zones` y `venues`, que están limitadas al organizador: con `security_invoker = true` el fan veía sus tickets y **cero** eventos, así que la vista salía vacía. La alternativa era dar a `authenticated` políticas de lectura sobre esas tres tablas para los eventos donde tenga un ticket — cuatro políticas más, y la fila entera del evento abierta a cualquiera con una entrada. El filtro de la vista es `t.owner_id = auth.uid()`: una línea, trivial de auditar, y más estrecha que la de `v_event_public`. Cubierto por las comprobaciones de 005. |
+
+| **ERROR** | `security_definer_view` en `public.v_my_gate_events` y `public.v_gate_stats` | **La tercera vez que aparece el mismo patrón, y por la misma razón.** El staff de puerta necesita el título del evento, el venue y el nombre de su zona; esas tres tablas están limitadas al organizador, así que con `security_invoker = true` las vistas salen vacías. La alternativa es dar a `authenticated` políticas de lectura sobre `events`, `venues` y `zones` para los eventos donde tenga una asignación — y entonces cualquiera que sea staff de un evento lee la fila **entera**, campos comerciales incluidos, que es justo lo que el Art. 7.5 no le corresponde. El filtro es `es.profile_id = auth.uid() and es.revoked_at is null`: dos condiciones en una línea, y revocar corta el acceso en la consulta siguiente. Cubierto por 006/AC-04, AC-06 y AC-07.
 
 ## Aceptados — rendimiento
 
@@ -40,6 +42,7 @@ rendimiento 0 `WARN`.
 | WARN | `authenticated_security_definer_function_executable` en las RPC de `public`: las 7 de 001 (`create_organizer`, `add`/`revoke_organizer_member`, `approve_organizer`, `set_organizer_status`, `set_own_dni`, `verify_dni`) y las 11 de 007 (`create_event`, `submit_event`, `approve`/`reject`/`request_event_info`, `set_event_checklist`, `publish`/`pause`/`resume`/`cancel_event`, `set_event_featured`) | **Es la superficie de RPC del producto**, y `security definer` es justo lo que las hace útiles: existen para hacer lo que una política no puede (fijar el `status` en el servidor, escribir dos filas juntas, hashear con un pepper que el llamante no ve). Cada una comprueba autorización en su propio cuerpo, y esa comprobación está cubierta por pruebas: 001/AC-17, AC-20, AC-23, AC-24, AC-07b y 007/AC-05, AC-06, AC-07, AC-12. |
 | WARN | `anon_security_definer_function_executable` en `get_public_event` y `active_phase_id` | **Son la superficie pública de 003, y `anon` las necesita.** `get_public_event(slug)` es `security definer` a propósito: exige el slug, y por eso un evento `unlisted` se abre por su enlace **sin** poder enumerarse — algo que una vista listable no puede lograr. `active_phase_id` devuelve el id de la fase activa de un evento, que es información pública del catálogo. Ninguna de las dos lee nada que no esté ya en la pantalla. |
 | WARN | `authenticated_security_definer_function_executable` en las RPC de 004 (`reserve_order`, `set_item_attendee`, `start_payment`, `fail_payment`) | **Es la superficie del checkout.** `reserve_order` existe precisamente para hacer lo que una política no puede: bloquear los tiers en orden, congelar el precio, subir el contador y calcular el cargo, todo en una transacción. `confirm_payment` **no** está en esta lista porque está revocada a `authenticated`: es del webhook (AC-29), y una prueba lo verifica. |
+| WARN | `authenticated_security_definer_function_executable` en `gate_find_by_dni` | **Es la superficie del modo DNI** (D-03), y `security definer` es lo que la hace posible: hashea con un pepper que el llamante no ve, sobre columnas que el staff no puede leer. Comprueba `event_staff` **antes** de hashear — ese orden es la comprobación, no un detalle: al revés sería un oráculo para confirmar si una persona concreta va a un evento concreto. Verificado por 006 en las dos direcciones: el staff encuentra la entrada, el fan recibe 42501. `gate_checkin` **no** está en esta lista porque está revocada a `authenticated`: es solo de `service_role`, y una comprobación lo verifica. |
 | WARN | `authenticated_security_definer_function_executable` en `generate_seats` | Escribe cientos de asientos en un statement y comprueba `auth_organizer_ids()` en su cuerpo — verificado por 003/T-11b, que confirma el rechazo sobre una zona ajena y sobre una zona de pie. |
 | WARN | `auth_leaked_password_protection` | **Bloqueado por plan, no por olvido.** El chequeo contra HaveIBeenPwned es **Pro o superior**, y la organización `Keepgrowth AI` está en **free**: el interruptor no existe todavía. Mitigación disponible en free, en Authentication → Sign In / Providers → Email: subir *minimum password length* a 12 y exigir minúsculas + mayúsculas + dígitos. No es equivalente —una contraseña filtrada puede ser larga y variada— así que el chequeo real queda como requisito de producción junto al Art. 13. Ver **D-50**. |
 
@@ -67,6 +70,15 @@ Encontrado a mano, y por eso vale anotarlo:
   `relation "_items" already exists`. Por PostgREST cada RPC es su propia transacción,
   así que el linter no lo ve y producción no lo habría visto — hasta el día en que otra
   función la llamara dos veces. Lo destapó la suite al reservar dos veces.
+- **Una FK simple junto a una columna denormalizada no obliga a nada.** `price_tiers`
+  y `tickets` llevan `event_id` **y** `zone_id`; nada impedía que la zona fuera de otro
+  evento. Cerrado en `0045` con FK compuestas. Lo destapó una semilla que reusó un uuid,
+  y el síntoma fue un error de aforo que hablaba de la capacidad de otro evento.
+- **Una comprobación que verifica QUE algo falla, y no POR QUÉ, no prueba nada.**
+  `gate_find_by_dni` llamaba a una función inexistente y la suite daba verde: la
+  comprobación esperaba un fallo y lo hubo, por el motivo equivocado. Cerrado en `0046`,
+  y la comprobación nueva pide el camino feliz. El linter no ve esto y las pruebas
+  tampoco, salvo que se escriban pidiendo el éxito.
 - **Un mensaje de constraint no es un mensaje de producto.** El perdedor de la carrera
   por un asiento recibía `duplicate key value violates unique constraint`. La garantía
   era correcta y el texto inservible. Corregido en `0037`; el linter no opina de copy.
