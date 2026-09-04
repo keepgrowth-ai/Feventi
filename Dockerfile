@@ -10,7 +10,17 @@
 # abriendo el navegador.
 
 # ── 1. Construir ────────────────────────────────────────────────────────────
-FROM node:22-alpine AS build
+#
+# Debian (`slim`), no Alpine. Tailwind v4 compila el CSS con `lightningcss`, que
+# es un binario NATIVO, y publica una variante por plataforma: glibc y musl son
+# incompatibles entre sí. Debian usa glibc, que es donde esos binarios están
+# mejor cubiertos. Con Alpine el build muere así:
+#
+#     Error: Cannot find module '../lightningcss.linux-x64-musl.node'
+#
+# La imagen final sigue siendo nginx-alpine, así que esto no engorda lo que se
+# despliega: solo la capa de construcción, que se descarta.
+FROM node:22-slim AS build
 WORKDIR /app
 
 # Las dependencias primero, y solo los manifiestos: así Docker reutiliza esta
@@ -18,7 +28,32 @@ WORKDIR /app
 # reinstalar en cada cambio de código.
 COPY package.json package-lock.json ./
 COPY apps/web/package.json apps/web/
-RUN npm ci
+
+# Se BORRA el lock antes de instalar, y esto es una concesión consciente.
+#
+# El `package-lock.json` se generó en Windows, y npm dejó dentro solo los
+# binarios de win32: no hay una sola entrada `lightningcss-linux-*`. Con el lock
+# presente, ni `npm ci` ni `npm install` traen el binario que falta — `install`
+# también lo respeta y da por buena la resolución que hay escrita. El build
+# muere al compilar el CSS:
+#
+#     Error: Cannot find module '../lightningcss.linux-x64-gnu.node'
+#
+# Sin lock, npm resuelve desde cero para la plataforma en la que corre y baja la
+# variante de Linux. El coste es real y conviene decirlo: las versiones ya no
+# quedan clavadas al lock, sino a los rangos del `package.json` — dos builds
+# separados en el tiempo pueden traer parches distintos.
+#
+# La forma de recuperar `npm ci` es regenerar el lock EN Linux y commitearlo:
+# entonces tendría las entradas de las dos plataformas y las dos rutas
+# funcionarían. Mientras el desarrollo sea solo en Windows, esto es lo que hay.
+# Y con npm 11, no con el 10.9.8 que trae la imagen: resolver un workspace sin
+# lock revienta en el 10 con un error que no dice nada de lo que pasa —
+# `Cannot read properties of null (reading 'edgesOut')`. El proyecto ya declara
+# `packageManager: npm@11.12.1`, así que esto solo lo hace efectivo aquí.
+RUN npm install -g npm@11 \
+ && rm -f package-lock.json \
+ && npm install --no-audit --no-fund
 
 COPY apps/web apps/web
 # `build:prod` es un SCRIPT, no `build -- --configuration production`. Pasar el

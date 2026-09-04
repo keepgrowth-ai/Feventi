@@ -8,6 +8,10 @@ GitHub + Cloud Run para el front, Supabase para el backend.
 
 ---
 
+> **Desplegado y verificado el 4 de septiembre de 2026** en
+> `https://feventi-250048151842.us-central1.run.app`. Lo que salió por el camino
+> está al final, en «Lo que costó la primera vez».
+
 ## 0. Antes de empezar
 
 Necesitas:
@@ -262,3 +266,100 @@ Es una demo funcional. Para abrir la venta real falta:
 finanzas reales están especificadas y sin construir — cuatro de los cinco mundos
 del PDF. Fase 1 es lo necesario para vender y validar una entrada, no el
 producto completo del documento.
+
+
+---
+
+## Lo que costó la primera vez
+
+Cuatro fallos encadenados. Ninguno estaba en el código de la aplicación, y
+ninguno daba un mensaje que apuntara al problema real.
+
+### 1. Un build que falla sin dejar log
+
+El trigger fallaba en 42 s y la consola decía «No logs were found for this
+build», con tres motivos posibles. Ninguno era el correcto: la cuenta de
+servicio **sí** tenía `logging.logWriter`.
+
+Perseguir el log fue tiempo perdido. Lo que lo resolvió fue lanzar el build a
+mano —`gcloud builds submit`— y leer el error en la terminal:
+
+```
+250048151842-compute@developer.gserviceaccount.com does not have
+storage.objects.get access to ... buckets/feventi_cloudbuild
+```
+
+La cuenta no podía **leer el código fuente** que Cloud Build sube a Storage.
+Fallaba antes de empezar a construir, y por eso no había nada que registrar.
+
+```bash
+gcloud projects add-iam-policy-binding feventi   --member="serviceAccount:250048151842-compute@developer.gserviceaccount.com"   --role="roles/storage.objectViewer"
+```
+
+> Cuando un build falla sin log, no busques el log: reproduce el build donde
+> puedas ver la salida.
+
+### 2. Alpine no sirve: Tailwind v4 usa un binario nativo
+
+```
+Error: Cannot find module '../lightningcss.linux-x64-musl.node'
+```
+
+Tailwind v4 compila el CSS con `lightningcss`, que se publica como binario por
+plataforma. glibc y musl son incompatibles. Se cambió `node:22-alpine` por
+`node:22-slim`.
+
+La imagen final sigue siendo `nginx:alpine`, así que esto no engorda lo que se
+despliega — solo la capa de construcción, que se descarta.
+
+### 3. El `package-lock.json` solo tenía binarios de Windows
+
+Con Debian el error cambió a `linux-x64-gnu`, y ahí se vio la causa de fondo: el
+lock se generó en Windows y **no contiene una sola entrada `lightningcss-linux-*`**.
+
+Ni `npm ci` ni `npm install` lo arreglan: los dos respetan lo que el lock dice.
+La salida fue borrar el lock dentro del contenedor y dejar que npm resuelva para
+Linux. Y con **npm 11**, porque el 10.9.8 que trae la imagen revienta al resolver
+un workspace sin lock con un error que no dice nada:
+
+```
+npm error Cannot read properties of null (reading 'edgesOut')
+```
+
+> **Deuda anotada, no escondida:** las versiones ya no quedan clavadas al lock,
+> sino a los rangos del `package.json`. La forma de recuperar `npm ci` es
+> regenerar el lock en Linux y commitearlo — entonces tendría las entradas de
+> ambas plataformas.
+
+### 4. Las cabeceras de seguridad desaparecieron en silencio
+
+El despliegue funcionaba, pero al comprobar las cabeceras faltaban las cuatro de
+seguridad. Estaban escritas y no llegaban.
+
+En nginx, **un `add_header` dentro de un `location` anula todos los del nivel
+superior**. No se suman. Todo el HTML sale por un location con su propio
+`Cache-Control`, así que perdía las demás.
+
+`always` no arregla esto —solo hace que la cabecera se emita también en
+errores—. La única salida es repetirlas en cada location que declare las suyas.
+
+> Este es el que más miedo da de los cuatro: los otros tres rompen el build y se
+> ven. Este desplegaba perfecto y dejaba la aplicación sin `X-Frame-Options`. Se
+> encontró comprobando las cabeceras una por una, no mirando la página.
+
+### Cómo quedó verificado
+
+```
+/          200      x-frame-options: DENY
+/eventos   200      x-content-type-options: nosniff
+/entradas  200      referrer-policy: strict-origin-when-cross-origin
+/puerta    200      permissions-policy: camera=(self), ...
+
+bundle     cache-control: public, immutable
+index      cache-control: no-cache, must-revalidate
+
+bundle apunta a Supabase   sí
+production = true          sí
+service_role en el bundle  NO          ← Art. 9.3
+v_event_public desde anon  200
+```
