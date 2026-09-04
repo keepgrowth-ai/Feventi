@@ -821,6 +821,37 @@ export type Database = {
         };
         Relationships: [];
       };
+      /** Ventas del evento, Art. 5. bruto = lo cobrado al fan (008/AC-08). */
+      v_event_sales: {
+        Row: {
+          event_id: string | null;
+          capacity: number | null;
+          service_charge_bps: number | null;
+          service_charge_payer: Database['public']['Enums']['charge_payer'] | null;
+          payout_policy: Json | null;
+          tickets_sold: number | null;
+          gross_cents: number | null;
+          feventi_commission_cents: number | null;
+          refunds_cents: number | null;
+          net_estimated_cents: number | null;
+        };
+        Relationships: [];
+      };
+      /** Ventas por fase. `phase_id` nulo = la fila agregada «Otras fases» (008/AC-06). */
+      v_event_phase_sales: {
+        Row: {
+          event_id: string | null;
+          phase_id: string | null;
+          name: string | null;
+          kind: Database['public']['Enums']['phase_kind'] | null;
+          starts_at: string | null;
+          ends_at: string | null;
+          sort_order: number | null;
+          tickets: number | null;
+          gross_cents: number | null;
+        };
+        Relationships: [];
+      };
       /** Los eventos donde este usuario es staff, con su puerta y su turno ya resuelto (006/AC-06). */
       v_my_gate_events: {
         Row: {

@@ -13,8 +13,8 @@ es un hallazgo nuevo y hay que resolverlo o justificarlo aquí en el mismo commi
 > obliga a elegir entre el linter y la seguridad real está mal escrita: lo que importa
 > es que ningún hallazgo quede sin mirar, no que la lista salga vacía.
 
-Última corrida: **006 Validador de puerta** · seguridad 4 `ERROR` argumentados ·
-rendimiento 0 `WARN`.
+Última corrida: **008 Dashboard del organizador** · seguridad 6 `ERROR` argumentados ·
+rendimiento 0 `WARN` (todo `INFO`, aceptado abajo).
 
 ## Excepciones argumentadas
 
@@ -24,14 +24,19 @@ rendimiento 0 `WARN`.
 
 | **ERROR** | `security_definer_view` en `public.v_my_tickets` | **Misma razón, filtro más estrecho.** La wallet hace join con `events`, `zones` y `venues`, que están limitadas al organizador: con `security_invoker = true` el fan veía sus tickets y **cero** eventos, así que la vista salía vacía. La alternativa era dar a `authenticated` políticas de lectura sobre esas tres tablas para los eventos donde tenga un ticket — cuatro políticas más, y la fila entera del evento abierta a cualquiera con una entrada. El filtro de la vista es `t.owner_id = auth.uid()`: una línea, trivial de auditar, y más estrecha que la de `v_event_public`. Cubierto por las comprobaciones de 005. |
 
-| **ERROR** | `security_definer_view` en `public.v_my_gate_events` y `public.v_gate_stats` | **La tercera vez que aparece el mismo patrón, y por la misma razón.** El staff de puerta necesita el título del evento, el venue y el nombre de su zona; esas tres tablas están limitadas al organizador, así que con `security_invoker = true` las vistas salen vacías. La alternativa es dar a `authenticated` políticas de lectura sobre `events`, `venues` y `zones` para los eventos donde tenga una asignación — y entonces cualquiera que sea staff de un evento lee la fila **entera**, campos comerciales incluidos, que es justo lo que el Art. 7.5 no le corresponde. El filtro es `es.profile_id = auth.uid() and es.revoked_at is null`: dos condiciones en una línea, y revocar corta el acceso en la consulta siguiente. Cubierto por 006/AC-04, AC-06 y AC-07.
+| **ERROR** | `security_definer_view` en `public.v_my_gate_events` y `public.v_gate_stats` | **La tercera vez que aparece el mismo patrón, y por la misma razón.** El staff de puerta necesita el título del evento, el venue y el nombre de su zona; esas tres tablas están limitadas al organizador, así que con `security_invoker = true` las vistas salen vacías. La alternativa es dar a `authenticated` políticas de lectura sobre `events`, `venues` y `zones` para los eventos donde tenga una asignación — y entonces cualquiera que sea staff de un evento lee la fila **entera**, campos comerciales incluidos, que es justo lo que el Art. 7.5 no le corresponde. El filtro es `es.profile_id = auth.uid() and es.revoked_at is null`: dos condiciones en una línea, y revocar corta el acceso en la consulta siguiente. Cubierto por 006/AC-04, AC-06 y AC-07. |
+
+| **ERROR** | `security_definer_view` en `public.v_event_sales` y `public.v_event_phase_sales` | **Aquí el spec pedía lo contrario, y se documentó por qué no.** 008/AC-04 dice `security_invoker = true`; con invoker las dos vistas salen EN CERO, porque agregan `orders`, `order_items`, `payments` y `tickets` y la RLS de esas cuatro no deja al organizador ni una fila. Para que invoker funcionara habría que darle políticas de lectura sobre ellas — que es **exactamente lo que 008/AC-02 prohíbe**. Los dos criterios no pueden cumplirse a la vez: gana AC-02, porque es la regla de privacidad (Art. 7.5) y AC-04 solo era el medio que se supuso para llegar a ella. El filtro es `e.organizer_id = any (private.auth_organizer_ids())`, y está verificado en las dos direcciones por 008/AC-01 … AC-01d y AC-02 … AC-02d.
 
 ## Aceptados — rendimiento
 
 | nivel | hallazgo | por qué se acepta |
 |---|---|---|
 | INFO | `unindexed_foreign_keys` en columnas de auditoría (`*.created_by`, `organizers.approved_by`, `organizer_members.invited_by`, `event_review_notes.actor_id`, `ticket_events.actor_id`, `ticket_events.corrects_id`, `tickets.original_owner_id`) | **YAGNI.** Son columnas de auditoría: nadie consulta «qué organizadores aprobó tal Admin». Un índice ahí solo aceleraría el chequeo de FK al borrar un `profile`, sobre tablas que van a tener cientos de filas, no millones. Se indexa el día que exista una pantalla que filtre por ellas. |
+| INFO | `unindexed_foreign_keys` en las FK compuestas de `0045` (`price_tiers (event_id, zone_id)`, `price_tiers (event_id, phase_id)`, `tickets (event_id, zone_id)`) | **Se paga solo al borrar una zona o una fase**, que es una operación de configuración, no de tráfico. Y no van a ciegas: `price_tiers_event_idx` y `tickets_event_idx` empiezan por `event_id`, así que el chequeo se acota al evento antes de mirar filas. Un índice exacto por cada FK compuesta serían tres índices más que se escriben en cada venta para acelerar un borrado que casi no ocurre. |
+| INFO | `unindexed_foreign_keys` en `checkins.event_staff_id` y `event_staff.created_by` / `revoked_by` / `zone_id` | Mismo criterio que las columnas de auditoría de arriba: nadie consulta «qué escaneos hizo tal asignación». `checkins` ya tiene tres índices por los caminos que sí se usan —evento+puerta, ticket y staff—, y añadir un cuarto encarece el `insert` de cada escaneo, que es justo lo que tiene que ir rápido en la puerta. |
 | INFO | `unindexed_foreign_keys` en `price_tiers (zone_id, segment_id)`, `seats (zone_id, …)` y `zone_segments (zone_id, …)` | **Ya están cubiertos.** Postgres usa un índice compuesto para una búsqueda por su primera columna, y existe un índice que empieza por `zone_id` en las tres tablas. El linter no comprueba prefijos. El que **sí** faltaba —`price_tiers (phase_id)`— se añadió en `0026`. |
+| INFO | `unused_index` en `events_search_idx`, `tickets_holder_dni_idx` y `checkins_event_result_idx` | Los tres tienen su consumidor escrito y probado: el buscador de 002, el modo DNI de 006 y el dashboard de 008. Salen «sin usar» porque el volumen de datos es tan pequeño que el planner prefiere un seq scan — no porque nadie los consulte. Se revisan con tráfico real. |
 | INFO | `unused_index` en `organizers_status_idx`, `venues_city_idx`, `events_public_idx`, `seats_segment_idx`, `zone_segments_zone_idx` | Están sin usar porque **no hay datos**. Cada uno tiene su caso: `organizers_status` y `venues_city` los usan las pantallas de 007, `events_public_idx` es el índice parcial del catálogo de 002 y `seats_segment_idx` lo usará el selector de asientos de 004. Se revisan con tráfico real; el que siga sin usarse, se borra. |
 
 ## Aceptados — seguridad
@@ -79,6 +84,11 @@ Encontrado a mano, y por eso vale anotarlo:
   comprobación esperaba un fallo y lo hubo, por el motivo equivocado. Cerrado en `0046`,
   y la comprobación nueva pide el camino feliz. El linter no ve esto y las pruebas
   tampoco, salvo que se escriban pidiendo el éxito.
+- **`security definer` en una vista NO cubre el `EXECUTE` de las funciones que llama.**
+  Cubre las tablas; el permiso de las funciones se comprueba contra el rol que consulta.
+  Costó un `42501` en `0025` (`total_with_charge` para `anon`) y **otra vez** en `0047`
+  (`order_commission_cents` para `authenticated`). Dos veces la misma lección: definer no
+  es un pase general.
 - **Un mensaje de constraint no es un mensaje de producto.** El perdedor de la carrera
   por un asiento recibía `duplicate key value violates unique constraint`. La garantía
   era correcta y el texto inservible. Corregido en `0037`; el linter no opina de copy.

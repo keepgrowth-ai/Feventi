@@ -32,7 +32,7 @@ aceptación verificables, después el código.
 | 004 | Checkout y emisión de tickets | ✅ **listo** — 52 comprobaciones + 4 de concurrencia + compra e2e |
 | 005 | Wallet y QR dinámico | ✅ **listo** — 17 comprobaciones por HTTP |
 | 006 | Validador de puerta | ✅ **listo** — 40 comprobaciones + 25 por HTTP, con doble escaneo en paralelo |
-| 008 | Dashboard del organizador | spec listo |
+| 008 | Dashboard del organizador | ✅ **listo** — 22 comprobaciones, con los dos modelos de cargo |
 | 009 | Soporte contextual | spec listo |
 
 Orden de construcción: **001 → 007 → 003 → 002 → 004 → 005 → 006 → 008 → 009**.

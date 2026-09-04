@@ -79,9 +79,12 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/organizador/evento-form.page').then((m) => m.OrgEventoFormPage),
       },
+      {
+        path: 'eventos/:id/panel',
+        loadComponent: () =>
+          import('./features/organizador/dashboard.page').then((m) => m.OrgDashboardPage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'eventos' },
-
-      // 008  path: 'eventos/:id/panel'    dashboard del evento
     ],
   },
 

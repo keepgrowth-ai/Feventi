@@ -98,6 +98,17 @@ import { EVENT_STATUS, type EventStatus } from '../eventos/event-status';
                 <p class="mt-1.5 text-[12.5px] text-fg-soft">{{ step }}</p>
               }
             </a>
+            <!-- El panel se ofrece solo cuando hay algo que mirar. Un enlace a
+                 un dashboard de ceros, sobre un evento que aún no vende, invita
+                 a un clic que decepciona. -->
+            @if (copy(ev.status).selling || ev.status === 'paused' || ev.status === 'finished') {
+              <a
+                [routerLink]="['/organizador/eventos', ev.id, 'panel']"
+                class="mt-1 inline-block text-[12.5px] font-semibold text-violet"
+              >
+                Ver ventas y accesos →
+              </a>
+            }
           }
         </div>
       </section>
