@@ -232,6 +232,8 @@ export class WalletPage implements OnDestroy {
   protected readonly left = signal(0);
 
   private timer?: ReturnType<typeof setInterval>;
+  /** Hay una petición de token en vuelo. Evita que se solapen. */
+  private pidiendo = false;
 
   protected readonly slotSeconds = computed(() => this.token()?.slot_seconds ?? 30);
   protected readonly progress = computed(() =>
@@ -252,8 +254,16 @@ export class WalletPage implements OnDestroy {
   protected readonly pasadas = computed(() => this.tickets().filter((t) => t.is_past));
 
   constructor() {
-    queueMicrotask(() => void this.load());
-    this.timer = setInterval(() => this.tick(), 1000);
+    // El temporizador arranca DESPUÉS de la primera carga, no a la vez.
+    //
+    // Antes empezaba aquí, y como `left` vale 0 hasta que llega el primer token,
+    // en el segundo 1 el tick veía `0 - 1` —no mayor que cero— y disparaba un
+    // refresco **encima del que ya estaba en vuelo**. Dos peticiones compitiendo
+    // por escribir la misma señal, y el QR apareciendo tarde o a saltos.
+    queueMicrotask(async () => {
+      await this.load();
+      this.timer = setInterval(() => this.tick(), 1000);
+    });
   }
 
   ngOnDestroy(): void {
@@ -267,17 +277,37 @@ export class WalletPage implements OnDestroy {
   }
 
   private async refresh(ticketId: string): Promise<void> {
-    const { data, error } = await this.store.qrToken(ticketId);
-    if (error) {
-      this.store.error.set(error);
-      this.token.set(null);
-      return;
+    // Una petición a la vez. Sin esto, dos refrescos solapados escriben la misma
+    // señal en orden impredecible y puede quedar el token VIEJO encima del nuevo
+    // — un QR que el validador rechaza por captura de pantalla, sin que el fan
+    // haya hecho nada raro.
+    if (this.pidiendo) return;
+    this.pidiendo = true;
+    try {
+      const { data, error } = await this.store.qrToken(ticketId);
+      if (error) {
+        this.store.error.set(error);
+        this.token.set(null);
+        // Sin esto, `left` se queda en 0 y el tick reintenta CADA SEGUNDO: un
+        // fallo persistente se convierte en una tormenta de peticiones. Con 5 s
+        // el reintento existe pero no castiga a un servidor que ya va mal.
+        this.left.set(5);
+        return;
+      }
+      this.token.set(data);
+      // Los segundos vienen del SERVIDOR. Deducirlos del reloj del móvil haría
+      // que la cuenta atrás mintiera en cuanto hubiera desfase — y esa cuenta
+      // atrás es justamente lo que sostiene el mensaje de que el código cambia.
+      //
+      // El mínimo de 2 s es por el borde del slot: si el token se pide justo
+      // antes de que cambie, `expires_in` llega valiendo 1, y con la latencia de
+      // la petición el siguiente refresco entra antes de que el anterior acabe
+      // de pintarse. Perder un segundo de vigencia no le importa a nadie;
+      // encadenar peticiones, sí.
+      this.left.set(Math.max(data?.expires_in ?? 0, 2));
+    } finally {
+      this.pidiendo = false;
     }
-    this.token.set(data);
-    // Los segundos vienen del SERVIDOR. Deducirlos del reloj del móvil haría que
-    // la cuenta atrás mintiera en cuanto hubiera desfase — y esa cuenta atrás es
-    // justamente lo que sostiene el mensaje de que el código cambia.
-    this.left.set(data?.expires_in ?? 0);
   }
 
   private tick(): void {

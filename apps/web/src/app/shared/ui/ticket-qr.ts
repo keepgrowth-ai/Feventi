@@ -44,13 +44,28 @@ export class TicketQr {
   readonly label = input('');
   readonly px = input(224);
 
-  private readonly lienzo = viewChild.required<ElementRef<HTMLCanvasElement>>('lienzo');
+  // Sin `.required`: así devuelve `undefined` en vez de lanzar, y el efecto
+  // puede volver a intentarlo en el ciclo siguiente en lugar de romperse.
+  private readonly lienzo = viewChild<ElementRef<HTMLCanvasElement>>('lienzo');
 
   constructor() {
     effect(() => {
       const texto = this.token();
       const size = this.px();
-      const canvas = this.lienzo().nativeElement;
+
+      // `viewChild.required()` LANZA si se lee antes de que exista el elemento,
+      // y un error aquí deja el canvas en blanco sin decir por qué. El efecto
+      // corre tras la detección de cambios, así que normalmente ya está — pero
+      // «normalmente» no es «siempre», y este componente aparece dentro de un
+      // `@if` que puede montarlo en mitad de un ciclo.
+      //
+      // Se lee el signal ANTES del try para que el efecto siga dependiendo de
+      // él: dentro de un catch, la dependencia podría no registrarse y el QR no
+      // se volvería a dibujar nunca al cambiar el token.
+      const ref = this.lienzo();
+      if (!ref) return;
+
+      const canvas = ref.nativeElement;
       const ctx = canvas.getContext('2d');
       if (!ctx || !texto) return;
 
