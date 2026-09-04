@@ -31,7 +31,7 @@ insert into public.venues (id, name, city, capacity) values
  ('f0000000-0000-4000-8000-0000000000f4','Teatro Municipal','Arequipa',1200);
 
 insert into public.organizers (id, legal_name, ruc, status, created_by)
-values ('f0000000-0000-4000-8000-0000000000f3','Catalogo SAC','20512345678','approved',
+values ('f0000000-0000-4000-8000-0000000000f3','Catalogo SAC','20502000001','approved',
         'f0000000-0000-4000-8000-0000000000f1');
 insert into public.organizer_members (organizer_id, user_id, role)
 values ('f0000000-0000-4000-8000-0000000000f3','f0000000-0000-4000-8000-0000000000f1','owner');

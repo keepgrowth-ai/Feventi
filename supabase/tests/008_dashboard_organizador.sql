@@ -36,8 +36,8 @@ insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
 insert into public.venues (id,name,city,capacity) values ('a8000000-0000-4000-8000-0000000000b1','Coliseo','Lima',5000);
 
 insert into public.organizers (id, legal_name, trade_name, ruc, status, created_by) values
- ('a8000000-0000-4000-8000-0000000000c1','A SAC','A','20500000001','approved','a8000000-0000-4000-8000-0000000000f1'),
- ('a8000000-0000-4000-8000-0000000000c2','B SAC','B','20500000002','approved','a8000000-0000-4000-8000-0000000000f2');
+ ('a8000000-0000-4000-8000-0000000000c1','A SAC','A','20508000001','approved','a8000000-0000-4000-8000-0000000000f1'),
+ ('a8000000-0000-4000-8000-0000000000c2','B SAC','B','20508000002','approved','a8000000-0000-4000-8000-0000000000f2');
 
 -- Un viewer vivo y uno revocado, para AC-07.
 insert into public.organizer_members (organizer_id, user_id, role, revoked_at) values

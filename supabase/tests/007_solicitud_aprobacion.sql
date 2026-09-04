@@ -5,6 +5,13 @@
 --
 -- La prueba de concurrencia (T-16) NO está aquí: necesita dos conexiones y va
 -- aparte, al final de este archivo como comentario con las instrucciones.
+--
+-- IDENTIFICADORES PROPIOS. La base tiene datos permanentes de la semilla de demo,
+-- así que nada aquí puede colisionar con ellos ni tocarlos: RUC `205070000xx`,
+-- slug `req-007-*` y un venue con nombre propio. Ver `supabase/tests/README.md`.
+--
+-- El `limit 1` sobre `events` funciona porque la RLS del organizador A ya lo
+-- acota a su único evento — no porque la tabla tenga uno solo.
 
 begin;
 
@@ -39,21 +46,25 @@ exception when others then return left(sqlerrm, 75); end $$;
 create temp table res(ac text, pass boolean, detail text) on commit drop;
 grant insert, select on res to authenticated, anon;
 
-insert into public.venues (name, city, capacity) values ('Estadio Nacional','Lima',40000);
+insert into public.venues (id, name, city, capacity)
+values ('70000000-0000-4000-8000-0000000000aa','Venue de la suite 007','Lima',40000);
 
 -- Dos organizadores aprobados, para probar aislamiento
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
-select public.create_organizer('Andes Live SAC','Andes Live','20501234567',null,null);
+select public.create_organizer('Andes Live SAC','Andes Live','20507000001',null,null);
 set local request.jwt.claims = '{"sub":"55555555-5555-5555-5555-555555555555","role":"authenticated"}';
-select public.create_organizer('Otra Produccion SAC','Otra Prod','20509999999',null,null);
+select public.create_organizer('Otra Produccion SAC','Otra Prod','20507000002',null,null);
 set local request.jwt.claims = '{"sub":"33333333-3333-3333-3333-333333333333","role":"authenticated"}';
-select public.approve_organizer(id) from public.organizers order by created_at;
+-- Solo los DOS de esta suite: como Admin se ven todos, y el de la semilla de
+-- demo ya está aprobado — volver a aprobarlo fallaría por transición inválida.
+select public.approve_organizer(id) from public.organizers
+ where ruc in ('20507000001','20507000002') order by created_at;
 
 -- ── create_event ────────────────────────────────────────────────────────────
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
 select public.create_event(
-  (select id from public.organizers where ruc='20501234567'), 'K-Pop Fest 2026');
+  (select id from public.organizers where ruc='20507000001'), 'K-Pop Fest 2026');
 
 insert into res select 'AC-01  create_event nace en draft',
   (select status = 'draft' from public.events limit 1),
@@ -71,8 +82,8 @@ insert into res select 'AC-03  submit incompleto nombra lo que falta',
 update public.events set
   description='Festival de K-pop', category='Festival',
   starts_at='2026-08-28 20:00-05', doors_at='2026-08-28 18:00-05',
-  venue_id=(select id from public.venues limit 1), capacity=1400,
-  slug='k-pop-fest-2026';
+  venue_id='70000000-0000-4000-8000-0000000000aa', capacity=1400,
+  slug='req-007-kpop';
 
 insert into res select 'AC-04  submit desde draft funciona',
   not pg_temp.fails($q$select public.submit_event((select id from public.events limit 1))$q$),
@@ -123,8 +134,10 @@ reset role;
 
 -- ── AC-10: cada transición deja exactamente un asiento ──────────────────────
 insert into res select 'AC-10  una transición = un asiento',
-  (select count(*) = 4 from public.event_review_notes),
-  (select string_agg(action::text, ' → ' order by created_at) from public.event_review_notes);
+  (select count(*) = 4 from public.event_review_notes
+    where event_id = (select id from public.events where slug='req-007-kpop')),
+  (select string_agg(action::text, ' → ' order by created_at) from public.event_review_notes
+    where event_id = (select id from public.events where slug='req-007-kpop'));
 
 insert into res select 'AC-10b el asiento guarda estado antes y después',
   (select bool_and(status_before is not null and status_after is not null)
@@ -153,10 +166,39 @@ insert into res select 'AC-11c sin INSERT directo (solo log_event_review)',
 -- ── AC-13: el organizador lee su historial ──────────────────────────────────
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
 insert into res select 'AC-13  organizador lee su historial de decisiones',
-  (select count(*) = 4 from public.event_review_notes),
+  (select count(*) = 4 from public.event_review_notes),  -- la RLS ya lo acota a los suyos
   've ' || (select count(*) from public.event_review_notes)::text || ' asientos';
 
 -- ── AC-07: publicar es del organizador ──────────────────────────────────────
+--
+-- ESTA PARTE LLEVABA ROTA DESDE 003, y se descubrió al re-correr la suite
+-- entera contra el schema actual. `publish_event` gana una guarda al aplicar
+-- 003 —«no se publica sin al menos una entrada con stock»— porque hasta
+-- entonces `price_tiers` no existía y la comprobación se saltaba sola:
+--
+--     if to_regclass('public.price_tiers') is not null then …
+--
+-- 007 se escribió antes y nunca sembró inventario, así que AC-07b fallaba y
+-- arrastraba a AC-07c, AC-20 y AC-20b. El producto estaba bien; la prueba se
+-- quedó atrás. Es lo que pasa cuando una suite no se vuelve a correr después de
+-- una migración que toca su función.
+insert into res select 'AC-07d publicar SIN inventario falla, y dice por qué',
+  pg_temp.fails($q$select public.publish_event((select id from public.events where slug='req-007-kpop'))$q$),
+  pg_temp.err($q$select public.publish_event((select id from public.events where slug='req-007-kpop'))$q$);
+
+-- El inventario mínimo para poder publicar. Es de 003, pero 007 lo necesita
+-- para llegar al final de su propio flujo.
+insert into public.zones (id, event_id, name, kind, numbered, capacity)
+values ('70000000-0000-4000-8000-0000000000b1',
+        (select id from public.events where slug='req-007-kpop'),'General','standing',false,1400);
+insert into public.price_phases (id, event_id, name, kind, starts_at, ends_at)
+values ('70000000-0000-4000-8000-0000000000c1',
+        (select id from public.events where slug='req-007-kpop'),'Única','regular',
+        now()-interval '1 day', now()+interval '30 days');
+insert into public.price_tiers (event_id, zone_id, phase_id, price_cents, stock)
+values ((select id from public.events where slug='req-007-kpop'),
+        '70000000-0000-4000-8000-0000000000b1','70000000-0000-4000-8000-0000000000c1',4000,1400);
+
 insert into res select 'AC-07b organizador publica desde setup',
   not pg_temp.fails($q$select public.publish_event((select id from public.events limit 1))$q$),
   'Feventi autoriza, el organizador decide cuándo abre la venta';

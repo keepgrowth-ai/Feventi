@@ -50,7 +50,7 @@ insert into public.user_roles (user_id, role) values ('a9000000-0000-4000-8000-0
 
 insert into public.venues (id,name,city,capacity) values ('a9000000-0000-4000-8000-0000000000b1','Coliseo','Lima',5000);
 insert into public.organizers (id, legal_name, trade_name, ruc, status, created_by)
-values ('a9000000-0000-4000-8000-0000000000c1','N SAC','N','20599999999','approved','a9000000-0000-4000-8000-0000000000f3');
+values ('a9000000-0000-4000-8000-0000000000c1','N SAC','N','20509000001','approved','a9000000-0000-4000-8000-0000000000f3');
 insert into public.organizer_members (organizer_id, user_id, role)
 values ('a9000000-0000-4000-8000-0000000000c1','a9000000-0000-4000-8000-0000000000f3','owner');
 

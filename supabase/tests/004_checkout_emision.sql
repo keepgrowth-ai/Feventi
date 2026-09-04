@@ -2,6 +2,11 @@
 --
 -- Corre entero dentro de begin … rollback: no deja rastro.
 --
+-- LOS CONTEOS VAN ACOTADOS AL EVENTO DE ESTA SUITE. Los que corren tras
+-- `reset role` lo hacen como `postgres`, sin RLS que los limite, y la base tiene
+-- tickets permanentes de la semilla de demo: un `count(*) from tickets` a secas
+-- cuenta también los de otro. Ver `supabase/tests/README.md`.
+--
 -- LO QUE ESTE ARCHIVO NO PRUEBA: la concurrencia. AC-05, AC-06, AC-13 y AC-21
 -- necesitan conexiones simultáneas de verdad y van al final, como guion.
 -- Son las cuatro que, si fallan, se descubren la noche del evento con gente en
@@ -49,7 +54,7 @@ insert into auth.users (id, instance_id, aud, role, email, encrypted_password,
 insert into public.venues (id,name,city,capacity)
 values ('a1000000-0000-4000-8000-00000000fb01','Estadio','Lima',40000);
 insert into public.organizers (id,legal_name,ruc,status,created_by)
-values ('a1000000-0000-4000-8000-00000000fc01','Andes SAC','20599999901','approved','a1000000-0000-4000-8000-00000000fa02');
+values ('a1000000-0000-4000-8000-00000000fc01','Andes SAC','20504000001','approved','a1000000-0000-4000-8000-00000000fa02');
 insert into public.organizer_members (organizer_id,user_id,role)
 values ('a1000000-0000-4000-8000-00000000fc01','a1000000-0000-4000-8000-00000000fa02','owner');
 
@@ -161,7 +166,7 @@ insert into res select 'una fila por entrada, sin columna qty',
   '7 entradas = 7 filas';
 
 insert into res select 'AC-19  todavía NO hay tickets (Art. 2.1)',
-  (select count(*)=0 from public.tickets),
+  (select count(*)=0 from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01'),
   'sin pago confirmado no existe entrada válida, y la UI no puede insinuarlo';
 
 -- ════════════════════════════════════════════════════════════════════════════
@@ -209,10 +214,10 @@ insert into res select 'el importe tiene que coincidir con el total',
 select public.confirm_payment((select v from ctx where k='order'), 'chg_test_001', 6864);
 
 insert into res select 'AC-20  un ticket por order_item, y la orden queda paid',
-  (select count(*)=7 from public.tickets)
+  (select count(*)=7 from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01')
   and (select status='paid' and paid_at is not null
          from public.orders where id=(select v from ctx where k='order')),
-  (select count(*)||' tickets emitidos' from public.tickets);
+  (select count(*)||' tickets emitidos' from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01');
 
 -- AC-22: sobre General, que no tiene otras reservas vivas — ver la nota de
 -- AC-30 sobre por qué eso importa.
@@ -221,34 +226,40 @@ insert into res select 'AC-22  el cupo pasa de reserved a sold sin cambiar la su
   (select 'reserved='||reserved||' sold='||sold from public.price_tiers where id='a1000000-0000-4000-8000-000000010001');
 
 insert into res select 'AC-23  código FVT-año-6 sin caracteres ambiguos',
-  (select bool_and(code ~ '^FVT-[0-9]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$') from public.tickets),
-  (select code from public.tickets limit 1);
+  (select bool_and(code ~ '^FVT-[0-9]{4}-[23456789ABCDEFGHJKMNPQRSTUVWXYZ]{6}$')
+     from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01'),
+  (select code from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01' limit 1);
 
 insert into res select 'AC-23b los 7 códigos son distintos',
-  (select count(distinct code)=7 from public.tickets), 'ok';
+  (select count(distinct code)=7 from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01'), 'ok';
 
 insert into res select 'AC-24  cada ticket con su secreto de 32 bytes',
-  (select count(*)=7 and bool_and(length(secret)=32) from public.ticket_secrets), 'Art. 2.6';
+  (select count(*)=7 and bool_and(length(ts.secret)=32)
+     from public.ticket_secrets ts join public.tickets t on t.id=ts.ticket_id
+    where t.event_id='a1000000-0000-4000-8000-00000000fd01'), 'Art. 2.6';
 
 insert into res select 'AC-25  qr_available_from = starts_at - qr_lead_days',
   (select bool_and(t.qr_available_from = e.starts_at - interval '14 days')
-     from public.tickets t join public.events e on e.id=t.event_id), 'Art. 2.5';
+     from public.tickets t join public.events e on e.id=t.event_id
+    where t.event_id='a1000000-0000-4000-8000-00000000fd01'), 'Art. 2.5';
 
 insert into res select 'AC-26  face_value_cents = lo pagado por la entrada',
-  (select bool_and(face_value_cents=925) from public.tickets),
+  (select bool_and(face_value_cents=925) from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01'),
   'es el techo de reventa (Art. 6.2)';
 
 insert into res select 'AC-27  cada emisión deja asiento en la bitácora',
-  (select count(*)=7 from public.ticket_events where action='issued'), 'Art. 8';
+  (select count(*)=7 from public.ticket_events te
+     join public.tickets t on t.id=te.ticket_id
+    where te.action='issued' and t.event_id='a1000000-0000-4000-8000-00000000fd01'), 'Art. 8';
 
 insert into res select 'AC-32  el ticket sin nominar sale sin holder_dni_hash',
-  (select count(*)=6 from public.tickets where holder_dni_hash is null),
+  (select count(*)=6 from public.tickets where holder_dni_hash is null and event_id='a1000000-0000-4000-8000-00000000fd01'),
   'los 6 sin nominar dan manual_review en puerta';
 
 -- AC-21: el reintento del webhook NO vuelve a emitir
 insert into res select 'AC-21  confirm_payment con el mismo ref no duplica',
   public.confirm_payment((select v from ctx where k='order'), 'chg_test_001', 6864) = 7
-  and (select count(*)=7 from public.tickets),
+  and (select count(*)=7 from public.tickets where event_id='a1000000-0000-4000-8000-00000000fd01'),
   'el webhook reintenta: devuelve 7 y no emite nada nuevo';
 
 insert into res select 'AC-21b otra referencia sobre una orden pagada falla',
@@ -274,8 +285,14 @@ insert into res select 'AC-34  otro fan no ve mis órdenes',
   (select count(*)=0 from public.orders), 'ok';
 
 set local request.jwt.claims = '{"sub":"a1000000-0000-4000-8000-00000000fa01","role":"authenticated"}';
+-- DOS órdenes, no una: la pagada del camino feliz y la que AC-30 dejó
+-- reservada. Se comprueba que ve LAS SUYAS —y que entre ellas está la pagada—
+-- en vez de un número redondo que solo cuadra si nadie reservó antes.
 insert into res select 'AC-34b el comprador SÍ ve lo suyo',
-  (select count(*)=1 from public.orders) and (select count(*)=7 from public.tickets), 'ok';
+  (select count(*)=2 from public.orders)
+  and (select count(*)=1 from public.orders where id=(select v from ctx where k='order'))
+  and (select count(*)=7 from public.tickets),
+  'la orden pagada y la reserva viva de AC-30';
 insert into res select 'AC-11 (005)  ticket_secrets es inalcanzable, ni para el dueño',
   pg_temp.fails($q$select * from public.ticket_secrets$q$), 'Art. 2.6';
 insert into res select 'AC-37  el fan no puede tocar una orden pagada',
@@ -340,8 +357,11 @@ reset role;
 update public.orders set reserved_until = now() - interval '1 minute'
  where id = (select v from ctx where k='order2');
 
+-- `>= 1` y no `= 1`: `expire_orders()` es GLOBAL por naturaleza y podría barrer
+-- una reserva vencida de otro sitio. Lo que esta comprobación tiene que probar
+-- es que la de aquí se liberó — y eso lo confirman las dos de abajo.
 insert into res select 'AC-11  la primera pasada expira y libera',
-  public.expire_orders() = 1,
+  public.expire_orders() >= 1,
   (select 'reserved='||reserved from public.price_tiers where id='a1000000-0000-4000-8000-000000010002');
 
 insert into res select 'AC-12  los order_items se borran, el asiento queda libre',
@@ -356,9 +376,18 @@ insert into res select 'la orden se CONSERVA con sus totales y status=expired',
 insert into res select 'AC-13  la segunda pasada no expira nada más',
   public.expire_orders() = 0, 'idempotente';
 
+-- `reserved = 1`, no 0: AC-30 dejó VIVA una reserva sobre este mismo tier —el
+-- asiento B-6, que reservó para probar que sin DNI no se paga— y esa no ha
+-- vencido. Lo que esta comprobación tiene que probar es que expirar `order2`
+-- descontó exactamente su plaza y ni una más.
+--
+-- Es la tercera vez que la contaminación entre comprobaciones muerde en esta
+-- suite (AC-22 la primera, y ahora AC-13b y AC-34b). Con `= 0` la comprobación
+-- pasaba solo si se corría aislada, que es la peor clase de prueba: verde en el
+-- escritorio, roja en la suite entera.
 insert into res select 'AC-13b `reserved` no se descontó dos veces',
-  (select reserved=0 from public.price_tiers where id='a1000000-0000-4000-8000-000000010002'),
-  (select 'reserved='||reserved||' (nunca negativo)'
+  (select reserved=1 from public.price_tiers where id='a1000000-0000-4000-8000-000000010002'),
+  (select 'reserved='||reserved||' — la de AC-30, que sigue viva. Nunca negativo'
      from public.price_tiers where id='a1000000-0000-4000-8000-000000010002');
 
 insert into res select 'AC-14  una orden paid no se expira, aunque venciera',

@@ -46,7 +46,7 @@ insert into public.venues (id,name,city,capacity)
 values ('a6000000-0000-4000-8000-0000000000b1','Coliseo','Lima',5000);
 
 insert into public.organizers (id, legal_name, trade_name, ruc, status, created_by)
-values ('a6000000-0000-4000-8000-0000000000c1','Puerta SAC','Puerta','20512345678','approved',
+values ('a6000000-0000-4000-8000-0000000000c1','Puerta SAC','Puerta','20506000001','approved',
         'a6000000-0000-4000-8000-0000000000f4');
 insert into public.organizer_members (organizer_id, user_id, role)
 values ('a6000000-0000-4000-8000-0000000000c1','a6000000-0000-4000-8000-0000000000f4','owner');

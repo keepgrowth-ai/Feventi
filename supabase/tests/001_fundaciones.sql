@@ -206,7 +206,7 @@ insert into res select 'AC-09b DNI distinto → hash distinto',
 -- ── Tenencia ────────────────────────────────────────────────────────────────
 set local role authenticated;
 set local request.jwt.claims = '{"sub":"22222222-2222-2222-2222-222222222222","role":"authenticated"}';
-select public.create_organizer('Andes Live SAC','Andes Live','20501234567','ops@andes.pe',null);
+select public.create_organizer('Andes Live SAC','Andes Live','20501000001','ops@andes.pe',null);
 
 insert into res select 'AC-16  organizador nace en pending, con owner',
   (select o.status = 'pending' and m.role = 'owner'

@@ -2,6 +2,9 @@
 --
 -- Corre entero dentro de begin … rollback: no deja rastro.
 --
+-- Los identificadores son del bloque de esta suite —RUC `205030000xx`— porque la
+-- base tiene datos permanentes de la semilla de demo. Ver `supabase/tests/README.md`.
+--
 -- Ojo al orden: los bloques que llaman a `private.*` van ANTES del primer
 -- `set local role`. Dentro de una misma llamada, `reset role` no siempre ha
 -- surtido efecto para el statement siguiente, y esas funciones están revocadas
@@ -73,8 +76,8 @@ insert into public.venues (id, name, city, capacity)
 values ('b0000000-0000-4000-8000-0000000000aa','Estadio Nacional','Lima',40000);
 
 insert into public.organizers (id, legal_name, ruc, status, created_by) values
- ('c0000000-0000-4000-8000-0000000000aa','Andes Live SAC','20501234567','approved','22222222-2222-2222-2222-222222222222'),
- ('c0000000-0000-4000-8000-0000000000bb','Otra Prod SAC','20509999999','approved','55555555-5555-5555-5555-555555555555');
+ ('c0000000-0000-4000-8000-0000000000aa','Andes Live SAC','20503000001','approved','22222222-2222-2222-2222-222222222222'),
+ ('c0000000-0000-4000-8000-0000000000bb','Otra Prod SAC','20503000002','approved','55555555-5555-5555-5555-555555555555');
 insert into public.organizer_members (organizer_id, user_id, role) values
  ('c0000000-0000-4000-8000-0000000000aa','22222222-2222-2222-2222-222222222222','owner'),
  ('c0000000-0000-4000-8000-0000000000bb','55555555-5555-5555-5555-555555555555','owner');
@@ -225,8 +228,14 @@ insert into res select 'T-11b generate_seats en zona de pie falla',
 set local role anon;
 set local request.jwt.claims = '{"role":"anon"}';
 
+-- Presencia y ausencia de LOS SLUGS DE ESTA SUITE, no un `count(*) = 1`. La
+-- base tiene eventos de demo publicados, y contar todo el catálogo hacía que la
+-- comprobación dependiera de qué más hubiera sembrado. Es la misma lección del
+-- RUC: una suite no puede asumir que la base está vacía.
 insert into res select 'AC-01c el catálogo solo trae published + public',
-  (select count(*) = 1 from public.v_event_public),
+  exists (select 1 from public.v_event_public where slug='pub-publico')
+  and not exists (select 1 from public.v_event_public
+                   where slug in ('pub-unlisted','pub-private','borrador','pausado','ya-paso')),
   (select coalesce(string_agg(slug, ', '), '(vacío)') from public.v_event_public);
 
 insert into res select 'AC-02  el no listado NO está en el catálogo',
