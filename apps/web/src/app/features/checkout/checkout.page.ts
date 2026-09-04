@@ -8,7 +8,7 @@ import {
   OnDestroy,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth.store';
 import { Chip } from '../../shared/ui/chip';
 import { SupportButton } from '../../shared/ui/support-button';
@@ -277,6 +277,34 @@ import { CheckoutStore, mmss, secondsLeft, type OrderWithItems } from './checkou
                   <p class="mt-2 text-[12px] font-semibold text-danger-fg">{{ why }}</p>
                 }
 
+                <!-- Sin acentos graves aquí dentro: el template es un template
+                     literal de TypeScript, y uno solo lo cierra a media frase.
+                     El error que da no menciona el acento — dice
+                     «NG1001: Decorator argument must be literal».
+
+                     En estado awaiting_payment la orden espera a que el webhook
+                     de la pasarela confirme el cobro. En sandbox ese webhook no
+                     existe, así que la espera NO TERMINA.
+
+                     Un botón que dice «Procesando…» para siempre y no explica
+                     nada se lee como una aplicación rota: quien lo ve piensa que
+                     el sistema falló, no que está esperando algo que no va a
+                     llegar. Decirlo cuesta un párrafo. -->
+                @if (o.status === 'awaiting_payment') {
+                  <div class="mt-3 rounded-[--radius-chip] bg-warn-bg px-3 py-2.5 text-[12px] text-warn-fg">
+                    <p class="font-bold">Esto no va a avanzar solo, y es lo esperado.</p>
+                    <p class="mt-1">
+                      Tu reserva está hecha y el cupo, retenido. Lo que falta es la
+                      confirmación de la pasarela — y en este entorno de pruebas
+                      todavía no hay ninguna conectada.
+                    </p>
+                    <p class="mt-1">
+                      No se te ha cobrado nada. Cuando venza la reserva, el cupo se
+                      libera solo y puedes volver a intentarlo.
+                    </p>
+                  </div>
+                }
+
                 <p class="mt-3 border-t border-border pt-2 text-[11px] text-fg-subtle">
                   Pago en sandbox. Todavía no se procesan cobros reales.
                 </p>
@@ -314,6 +342,7 @@ export class CheckoutPage implements OnDestroy {
 
   protected readonly store = inject(CheckoutStore);
   protected readonly auth = inject(AuthStore);
+  private readonly router = inject(Router);
 
   protected readonly order = signal<OrderWithItems | null>(null);
   protected readonly now = signal(Date.now());
@@ -435,15 +464,32 @@ export class CheckoutPage implements OnDestroy {
   }
 
   /**
-   * Deja la orden en `awaiting_payment` y bloquea el botón.
+   * Deja la orden en `awaiting_payment` y, en sandbox, pide la confirmación.
    *
-   * La emisión NO ocurre aquí: `confirm_payment` es de `service_role` y la llama
-   * el webhook de la pasarela (Art. 9.4). Esta pantalla pide; no decide.
+   * La emisión NO ocurre aquí ni puede ocurrir: `confirm_payment` es de
+   * `service_role` (Art. 9.4). Esta pantalla PIDE dos veces —empieza el pago y
+   * luego llama a la pasarela de pruebas— pero quien decide es el servidor, y
+   * `sandbox-pay` se niega en cuanto el proyecto tenga un cobro real.
+   *
+   * Con una pasarela de verdad conectada, el segundo paso desaparece: lo hace su
+   * webhook, sin que el navegador participe.
    */
   protected async pay(o: OrderWithItems): Promise<void> {
     const { error } = await this.store.startPayment(o.id);
     if (error) return;
-    await this.load();
+
+    const fallo = await this.store.sandboxPay(o.id);
+    if (fallo) {
+      // La orden se queda en `awaiting_payment` a propósito: el cupo sigue
+      // retenido hasta que venza, así que reintentar es posible. El aviso de la
+      // pantalla explica qué pasa.
+      this.store.error.set(fallo);
+      await this.load();
+      return;
+    }
+
+    // Con los tickets ya emitidos, la wallet es el sitio al que se quiere ir.
+    await this.router.navigate(['/entradas']);
   }
 
   protected longDate(iso: string): string {

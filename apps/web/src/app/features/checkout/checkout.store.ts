@@ -1,4 +1,5 @@
 import { Injectable, signal } from '@angular/core';
+import { environment } from '../../../environments/environment';
 import { supabase } from '../../core/supabase.client';
 import type { Json, Tables } from '../../core/db.types';
 
@@ -101,6 +102,41 @@ export class CheckoutStore {
   /** Exige DNI propio y, en modo `strict`, que todo esté nominado. */
   async startPayment(orderId: string) {
     return this.run(() => supabase.rpc('start_payment', { p_order_id: orderId }));
+  }
+
+  /**
+   * La pasarela de mentira del entorno de pruebas.
+   *
+   * Hace lo que haría el webhook de una pasarela real: confirmar el cobro para
+   * que se emitan los tickets. No cobra nada — no hay banco al otro lado.
+   *
+   * Con la pasarela real conectada, este paso DESAPARECE del navegador: lo hace
+   * su webhook contra el servidor. Y `sandbox-pay` se niega sola en cuanto la
+   * base tenga un pago que no sea de sandbox, así que no hay que acordarse de
+   * quitarla.
+   *
+   * Devuelve el mensaje de error, o `null` si fue bien.
+   */
+  async sandboxPay(orderId: string): Promise<string | null> {
+    const { data: sesion } = await supabase.auth.getSession();
+    const jwt = sesion.session?.access_token;
+    if (!jwt) return 'Tu sesión venció. Vuelve a entrar.';
+
+    try {
+      const res = await fetch(`${environment.supabaseUrl}/functions/v1/sandbox-pay`, {
+        method: 'POST',
+        headers: {
+          apikey: environment.supabasePublishableKey,
+          authorization: `Bearer ${jwt}`,
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({ order_id: orderId }),
+      });
+      const body = await res.json().catch(() => ({}));
+      return res.ok ? null : (body.error ?? 'No se pudo confirmar el pago de prueba.');
+    } catch {
+      return 'No se pudo contactar con la pasarela de pruebas.';
+    }
   }
 
   /** Conserva la reserva hasta `reserved_until`: se puede reintentar. */
