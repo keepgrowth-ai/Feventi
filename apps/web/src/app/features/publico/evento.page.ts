@@ -1,7 +1,10 @@
 import { Component, ChangeDetectionStrategy, computed, inject, input, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { AuthStore } from '../../core/auth.store';
 import { Chip } from '../../shared/ui/chip';
 import { soles } from '../../shared/ui/money';
+import { CheckoutStore, type ReserveItem } from '../checkout/checkout.store';
+import { Seleccion } from './seleccion';
 import {
   PublicEventStore,
   stockLabel,
@@ -26,7 +29,7 @@ import {
 @Component({
   selector: 'fv-evento-publico',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Chip],
+  imports: [RouterLink, Chip, Seleccion],
   template: `
     @if (ev(); as e) {
       <!-- Key visual -->
@@ -158,12 +161,25 @@ import {
 
                   <div class="mt-3.5">
                     @if (canBuy(z)) {
-                      <button
-                        type="button"
-                        class="w-full rounded-[--radius-chip] bg-coral px-4 py-2.5 text-[14px] font-bold text-white sm:w-auto"
-                      >
-                        {{ z.numbered ? 'Elegir asiento' : 'Comprar' }}
-                      </button>
+                      @if (openZone() !== z.id) {
+                        <button
+                          type="button"
+                          (click)="pick(z)"
+                          class="w-full rounded-[--radius-chip] bg-coral px-4 py-2.5 text-[14px] font-bold text-white sm:w-auto"
+                        >
+                          {{ z.numbered ? 'Elegir asiento' : 'Comprar' }}
+                        </button>
+                      }
+                      @if (openZone() === z.id && buyTier(z); as t) {
+                        <fv-seleccion
+                          [zone]="z"
+                          [tier]="t"
+                          [maxPerUser]="e.max_per_user"
+                          [open]="true"
+                          (cancel)="openZone.set(null)"
+                          (reserved)="reserve(e.id, $event)"
+                        />
+                      }
                     } @else {
                       <button
                         type="button"
@@ -291,7 +307,12 @@ export class EventoPublicoPage {
   readonly slug = input.required<string>();
 
   protected readonly store = inject(PublicEventStore);
+  private readonly checkout = inject(CheckoutStore);
+  private readonly auth = inject(AuthStore);
+  private readonly router = inject(Router);
+
   protected readonly ev = signal<PublicEvent | null>(null);
+  protected readonly openZone = signal<string | null>(null);
   protected readonly money = soles;
 
   protected readonly zones = computed(() => this.ev()?.zones ?? []);
@@ -318,7 +339,7 @@ export class EventoPublicoPage {
     queueMicrotask(() => void this.load());
   }
 
-  private async load(): Promise<void> {
+  protected async load(): Promise<void> {
     this.ev.set(await this.store.getBySlug(this.slug()));
   }
 
@@ -343,6 +364,34 @@ export class EventoPublicoPage {
   protected canBuy(z: PublicZone): boolean {
     if (!this.ev()?.sale_open) return false;
     return z.tiers.some((t) => t.phase_active && t.available > 0);
+  }
+
+  /** El tier comprable de la zona: el de la fase activa con disponibilidad. */
+  protected buyTier(z: PublicZone): PublicTier | undefined {
+    return z.tiers.find((t) => t.phase_active && t.available > 0);
+  }
+
+  /** Comprar exige sesión: la reserva se ata a un usuario. */
+  protected async pick(z: PublicZone): Promise<void> {
+    if (!this.auth.isSignedIn()) {
+      await this.router.navigate(['/entrar'], {
+        queryParams: { volver: `/eventos/${this.slug()}` },
+      });
+      return;
+    }
+    this.openZone.set(z.id);
+  }
+
+  protected async reserve(eventId: string, items: readonly ReserveItem[]): Promise<void> {
+    const { data, error } = await this.checkout.reserve(eventId, items);
+    if (error || !data) {
+      // El mensaje de `reserve_order` ya está escrito para leerse; lo pinta
+      // <fv-seleccion>. Se recarga el detalle para que la disponibilidad
+      // mostrada deje de estar vieja.
+      await this.load();
+      return;
+    }
+    await this.router.navigate(['/comprar', data]);
   }
 
   protected phaseHint(p: { state: string; name: string; starts_at: string; ends_at: string; tickets: number }): string {

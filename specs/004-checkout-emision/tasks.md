@@ -1,7 +1,8 @@
 # 004 — Tasks
 
-**Backend cerrado.** 50 comprobaciones en verde, más las cuatro de concurrencia
-con peticiones HTTP simultáneas de verdad. Rendimiento sin `WARN`.
+**Cerrado.** 52 comprobaciones en verde, más las cuatro de concurrencia con
+peticiones HTTP simultáneas de verdad, más el flujo completo de compra probado de
+punta a punta por HTTP con un usuario real.
 
 Cierra además los dos guards que 007 y 003 dejaron abiertos por dependencia.
 
@@ -62,19 +63,49 @@ Cierra además los dos guards que 007 y 003 dejaron abiertos por dependencia.
       → 7 tickets, no 14
 - [x] T-30 `get_advisors(performance)` sin `WARN`
 - [x] T-31 Migraciones espejadas, 1:1 con lo aplicado
-- [ ] T-32 `npm run gen:types` y las pantallas de checkout
+- [x] T-32 `npm run gen:types`
 
-## Front — pendiente
+### Y una más, de la prueba de extremo a extremo
 
-- [ ] T-33 `checkout.store.ts`: reservar, nominar, pagar
-- [ ] T-34 `checkout.page.ts` con el stepper de cinco pasos fijos
-- [ ] T-35 El desglose desde el **primer** paso, con el cargo visible aunque sea cero
-- [ ] T-36 Cuenta atrás de la reserva, y qué pasa si vence
-- [ ] T-37 Nominación, con la advertencia literal del mockup en modo flexible
-- [ ] T-38 El copy del Art. 2.1: «tus tickets se emiten solo tras pago confirmado»
-- [ ] T-39 Selector de asiento por fila y número (**D-09**: sin plano gráfico)
-- [ ] T-40 Edge Function del webhook de pago, que es quien llama a `confirm_payment`
-- [ ] T-41 `npm run build` limpio
+- [x] T-32b `0040`: **`attendee_dni_hash` y `holder_dni_hash` eran legibles por el
+      cliente.** 001 cerró esa clase de dato en `profiles`, y 004 la volvió a abrir
+      en dos tablas nuevas. Severidad baja —solo se veían hashes de DNIs que el
+      propio comprador tecleó, y no se pueden escribir— pero dos compradores que
+      nominaran a la misma persona veían el mismo hash, y eso es una inferencia
+      entre usuarios que el diseño no pretendía. Cerrado con privilegio de columna
+      **más una prueba** que se pone roja si alguien lo reabre con un `grant`
+
+## Front
+
+- [x] T-33 `checkout.store.ts`: reservar, nominar, pagar
+- [x] T-34 `checkout.page.ts` con el stepper de **cinco pasos fijos**; el que no
+      aplica se marca hecho, no se oculta
+- [x] T-35 El desglose desde el primer momento, con el cargo visible **aunque sea
+      cero** — ocultarlo cuando lo absorbe el organizador rompería la costumbre de
+      verlo, que es lo que evita que se lea como sorpresa cuando sí se cobra
+- [x] T-36 Cuenta atrás de la reserva y qué pasa si vence
+- [x] T-37 Nominación con la **consecuencia** concreta: «sin nominar — se generará
+      alerta en puerta (modo flexible)», no una advertencia genérica
+- [x] T-38 El copy del Art. 2.1: «tus tickets se emiten solo tras pago confirmado»
+- [x] T-39 `seleccion.ts`: cantidad para zona de pie, asientos por fila y número
+      para numerada (**D-09**: sin plano gráfico)
+- [x] T-40 `supabase/functions/payment-webhook`: la única pieza que llama a
+      `confirm_payment`. Verifica la firma HMAC del cuerpo en tiempo constante y
+      **falla cerrado** si no hay secreto configurado
+- [x] T-41 `npm run build` limpio
+- [x] T-42 Motivo visible cuando el botón de pagar está bloqueado — un botón gris
+      sin explicación es un caso de soporte
+- [ ] T-43 Desplegar la Edge Function y configurar `FEVENTI_WEBHOOK_SECRET`
+
+## Extremo a extremo, por HTTP con un usuario real
+
+Reservar 3 entradas (2 de pie + 1 con asiento) → intentar pagar sin DNI
+(**rechazado**) → declarar DNI → nominar una → `start_payment` → intentar
+confirmar desde el cliente (**rechazado**) → confirmar como webhook → **3 tickets
+emitidos**, uno nominado y dos sin nominar.
+
+El desglose que devolvió el servidor: base S/ 260.00 + cargo S/ 15.60 =
+S/ 275.60, y la suma cuadra exacta.
 
 ## Notas
 

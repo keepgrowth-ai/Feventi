@@ -103,6 +103,17 @@ commit;
 select slug, from_price_cents, available_now, sale_open
 from public.v_event_public where slug = 'k-pop-fest-2026';
 
+-- ── Una compra real, para poder construir la wallet de 005 ──────────────────
+--
+-- Hecha por HTTP con un usuario de verdad (`feventi.e2e.compra@gmail.com`):
+-- 2 entradas de General y 1 de Platea A–C con asiento, una de ellas nominada.
+-- Deja 3 tickets `active` con su secreto, que es exactamente lo que 005 necesita
+-- para dibujar el QR sin tener que inventar datos.
+--
+-- Para rehacerla: reservar por /rest/v1/rpc/reserve_order con ese usuario y
+-- confirmar con confirm_payment desde service_role (el webhook todavía no está
+-- desplegado — Art. 13, sandbox).
+
 -- ── Limpiar ─────────────────────────────────────────────────────────────────
 -- delete from public.events where id = 'd0000000-0000-4000-8000-00000000d004';
 -- delete from public.organizers where id = 'd0000000-0000-4000-8000-00000000d003';

@@ -68,6 +68,12 @@ Encontrado a mano, y por eso vale anotarlo:
 - **Un mensaje de constraint no es un mensaje de producto.** El perdedor de la carrera
   por un asiento recibía `duplicate key value violates unique constraint`. La garantía
   era correcta y el texto inservible. Corregido en `0037`; el linter no opina de copy.
+- **Una columna sensible en una tabla NUEVA vuelve a estar expuesta**, aunque la misma
+  clase de dato ya se hubiera cerrado en otra. 001 escondió `profiles.dni_hash`; 004
+  creó `order_items.attendee_dni_hash` y `tickets.holder_dni_hash` legibles. El linter
+  no sabe qué columnas son sensibles, así que esto solo lo encuentra una prueba de
+  extremo a extremo o una revisión. Cerrado en `0040`, con su propia comprobación en la
+  suite para que un `grant select` posterior no lo reabra en silencio.
 - **Una vista `security_invoker = false` salta la RLS**, así que su `where` es la única
   protección que queda. El linter no dice nada sobre lo que filtra. `v_event_public` es
   la única así, y sus condiciones están cubiertas por siete comprobaciones de 003, una

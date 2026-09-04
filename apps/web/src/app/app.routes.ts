@@ -1,5 +1,5 @@
 import type { Routes } from '@angular/router';
-import { guestGuard, roleGuard } from './core/auth.guard';
+import { authGuard, guestGuard, roleGuard } from './core/auth.guard';
 import { FanLayout } from './layouts/fan.layout';
 import { OpsLayout } from './layouts/ops.layout';
 
@@ -42,7 +42,12 @@ export const routes: Routes = [
       // que mostrar, es una pantalla que se diseña dos veces.
       { path: '', pathMatch: 'full', redirectTo: 'eventos' },
 
-      // 004  path: 'comprar/:orderId'     checkout        canActivate: [authGuard]
+      {
+        path: 'comprar/:id',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import('./features/checkout/checkout.page').then((m) => m.CheckoutPage),
+      },
       // 005  path: 'entradas'             wallet y QR     canActivate: [authGuard]
       // 009  path: 'soporte'              mis casos       canActivate: [authGuard]
     ],

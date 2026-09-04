@@ -557,6 +557,130 @@ export type Database = {
           },
         ];
       };
+      orders: {
+        Row: {
+          id: string;
+          code: string;
+          event_id: string;
+          buyer_id: string;
+          status: Database['public']['Enums']['order_status'];
+          subtotal_cents: number;
+          discount_cents: number;
+          service_charge_cents: number;
+          total_cents: number;
+          currency: string;
+          service_charge_payer: Database['public']['Enums']['charge_payer'];
+          service_charge_bps: number;
+          promo_code: string | null;
+          reserved_until: string | null;
+          created_at: string;
+          paid_at: string | null;
+          failed_at: string | null;
+          expired_at: string | null;
+        };
+        /** Nadie inserta órdenes desde el cliente: solo `reserve_order`. */
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: 'orders_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      order_items: {
+        Row: {
+          id: string;
+          order_id: string;
+          price_tier_id: string;
+          seat_id: string | null;
+          unit_price_cents: number;
+          attendee_name: string | null;
+          /** Art. 7.1: solo lo escribe `set_item_attendee`, hasheado en el servidor. */
+          attendee_dni_hash: string | null;
+          attendee_dni_last4: string | null;
+          nominated_at: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: 'order_items_order_id_fkey';
+            columns: ['order_id'];
+            isOneToOne: false;
+            referencedRelation: 'orders';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      payments: {
+        Row: {
+          id: string;
+          order_id: string;
+          provider: string;
+          provider_ref: string | null;
+          status: Database['public']['Enums']['payment_status'];
+          amount_cents: number;
+          currency: string;
+          raw: Json | null;
+          created_at: string;
+          settled_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      tickets: {
+        Row: {
+          id: string;
+          code: string;
+          event_id: string;
+          order_item_id: string;
+          zone_id: string;
+          seat_id: string | null;
+          owner_id: string;
+          original_owner_id: string;
+          holder_name: string | null;
+          holder_dni_hash: string | null;
+          holder_dni_last4: string | null;
+          status: Database['public']['Enums']['ticket_status'];
+          face_value_cents: number;
+          resale_count: number;
+          qr_available_from: string | null;
+          issued_at: string;
+          used_at: string | null;
+        };
+        /** Art. 2.1: solo `confirm_payment` crea tickets. */
+        Insert: never;
+        Update: never;
+        Relationships: [
+          {
+            foreignKeyName: 'tickets_event_id_fkey';
+            columns: ['event_id'];
+            isOneToOne: false;
+            referencedRelation: 'events';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      ticket_events: {
+        Row: {
+          id: string;
+          ticket_id: string;
+          actor_id: string | null;
+          action: Database['public']['Enums']['ticket_event_action'];
+          meta: Json | null;
+          corrects_id: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: {
       /** Catálogo público. La única vista listable por `anon`. */
@@ -612,6 +736,14 @@ export type Database = {
     Functions: {
       /** Detalle público por slug: acepta `unlisted`, y por eso no es una vista. */
       get_public_event: { Args: { p_slug: string }; Returns: Json };
+      /** Devuelve el id de la orden. Ver specs/004-checkout-emision/plan.md. */
+      reserve_order: { Args: { p_event_id: string; p_items: Json }; Returns: string };
+      set_item_attendee: {
+        Args: { p_item_id: string; p_name: string; p_dni: string };
+        Returns: undefined;
+      };
+      start_payment: { Args: { p_order_id: string }; Returns: undefined };
+      fail_payment: { Args: { p_order_id: string; p_reason?: string }; Returns: undefined };
       /** La consulta usa la misma configuración que el índice, o unaccent no aplica. */
       search_events_tsquery: { Args: { p_query: string }; Returns: unknown };
       active_phase_id: { Args: { p_event_id: string }; Returns: string | null };
@@ -681,6 +813,27 @@ export type Database = {
       event_visibility: 'public' | 'unlisted' | 'private';
       zone_kind: 'standing' | 'seated';
       phase_kind: 'presale' | 'regular' | 'fanpass_presale';
+      order_status:
+        | 'draft'
+        | 'reserved'
+        | 'awaiting_payment'
+        | 'paid'
+        | 'failed'
+        | 'expired'
+        | 'refunded'
+        | 'cancelled';
+      payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded' | 'disputed';
+      ticket_status: 'active' | 'listed' | 'transferred' | 'used' | 'void' | 'refunded';
+      ticket_event_action:
+        | 'issued'
+        | 'nominated'
+        | 'listed'
+        | 'unlisted'
+        | 'transferred'
+        | 'used'
+        | 'voided'
+        | 'refunded'
+        | 'corrected';
       event_status:
         | 'draft'
         | 'pending_review'
@@ -717,6 +870,14 @@ export const Constants = {
       event_visibility: ['public', 'unlisted', 'private'],
       zone_kind: ['standing', 'seated'],
       phase_kind: ['presale', 'regular', 'fanpass_presale'],
+      order_status: [
+        'draft','reserved','awaiting_payment','paid','failed','expired','refunded','cancelled',
+      ],
+      payment_status: ['pending', 'succeeded', 'failed', 'refunded', 'disputed'],
+      ticket_status: ['active', 'listed', 'transferred', 'used', 'void', 'refunded'],
+      ticket_event_action: [
+        'issued','nominated','listed','unlisted','transferred','used','voided','refunded','corrected',
+      ],
       event_status: [
         'draft',
         'pending_review',

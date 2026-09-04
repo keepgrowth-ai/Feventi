@@ -29,7 +29,7 @@ aceptación verificables, después el código.
 | 007 | Solicitud de evento y aprobación | ✅ **listo** — 32 comprobaciones + concurrencia |
 | 003 | Detalle de evento: zonas, segmentos, fases, precios | ✅ **listo** — 56 comprobaciones |
 | 002 | Catálogo público | ✅ **listo** — 25 comprobaciones |
-| 004 | Checkout y emisión de tickets | 🔶 backend listo — 50 comprobaciones + 4 de concurrencia; falta el front |
+| 004 | Checkout y emisión de tickets | ✅ **listo** — 52 comprobaciones + 4 de concurrencia + compra e2e |
 | 005 | Wallet y QR dinámico | spec listo |
 | 006 | Validador de puerta | spec listo |
 | 008 | Dashboard del organizador | spec listo |
