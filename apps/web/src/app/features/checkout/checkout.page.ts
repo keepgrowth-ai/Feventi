@@ -265,7 +265,11 @@ import { CheckoutStore, mmss, secondsLeft, type OrderWithItems } from './checkou
                   [disabled]="!canPay(o)"
                   class="mt-4 w-full rounded-[--radius-chip] bg-coral px-4 py-3 text-[14px] font-bold text-white disabled:opacity-50"
                 >
-                  {{ o.status === 'awaiting_payment' ? 'Procesando…' : 'Pagar y emitir tickets' }}
+                  <!-- «Procesando…» era mentira en cuanto la espera dejaba de
+                       avanzar: describía un trabajo que no estaba ocurriendo. Si
+                       la orden lleva rato esperando, lo honesto es ofrecer el
+                       reintento. -->
+                  {{ o.status === 'awaiting_payment' ? 'Reintentar el pago' : 'Pagar y emitir tickets' }}
                 </button>
 
                 <!-- Art. 2.1: hasta el pago confirmado no hay entrada válida -->
@@ -429,7 +433,20 @@ export class CheckoutPage implements OnDestroy {
 
   protected canPay(o: OrderWithItems): boolean {
     if (this.store.loading()) return false;
-    if (o.status !== 'reserved' && o.status !== 'failed') return false;
+    // `awaiting_payment` también se puede pulsar, y esto NO es aflojar una
+    // guarda: significa «el cobro se pidió y no llegó respuesta».
+    //
+    // Con una pasarela real esa espera dura segundos y el webhook la cierra. En
+    // sandbox no llega nadie, así que la orden se queda ahí para siempre y el
+    // botón gris deja al comprador sin salida: ni avanza, ni puede reintentar,
+    // ni entiende por qué. Solo le queda esperar a que venza la reserva.
+    //
+    // Reintentar es seguro porque quien decide es el servidor: `confirm_payment`
+    // es idempotente por `provider_ref` y devuelve los tickets ya emitidos en
+    // vez de duplicarlos (004/AC-21).
+    if (o.status !== 'reserved' && o.status !== 'failed' && o.status !== 'awaiting_payment') {
+      return false;
+    }
     if (this.left() <= 0) return false;
     if (!this.auth.hasDni()) return false;
     if (this.strict() && o.order_items.some((i) => !i.nominated_at)) return false;
@@ -475,8 +492,14 @@ export class CheckoutPage implements OnDestroy {
    * webhook, sin que el navegador participe.
    */
   protected async pay(o: OrderWithItems): Promise<void> {
-    const { error } = await this.store.startPayment(o.id);
-    if (error) return;
+    // `start_payment` solo mueve de `reserved` a `awaiting_payment`. Si la orden
+    // YA está esperando —porque se pulsó antes y nadie confirmó— llamarla otra
+    // vez falla, y con un `return` temprano la pantalla se quedaba muerta: el
+    // reintento nunca alcanzaba la confirmación.
+    if (o.status !== 'awaiting_payment') {
+      const { error } = await this.store.startPayment(o.id);
+      if (error) return;
+    }
 
     const fallo = await this.store.sandboxPay(o.id);
     if (fallo) {

@@ -10,20 +10,18 @@
 // El algoritmo está en ../_shared/qr.ts, compartido con qr-validate.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { json, preflight } from '../_shared/cors.ts';
 import { SLOT_SECONDS, buildToken, byteaToBytes, currentSlot } from '../_shared/qr.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!;
 
-function json(body: unknown, status = 200): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-  });
-}
-
 Deno.serve(async (req: Request) => {
+  // El preflight va primero: si no se contesta, el POST no llega a salir.
+  const pre = preflight(req);
+  if (pre) return pre;
+
   if (req.method !== 'POST') return json({ error: 'método no permitido' }, 405);
 
   const authHeader = req.headers.get('Authorization') ?? '';

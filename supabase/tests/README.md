@@ -115,3 +115,35 @@ AC-30 de 004 deja viva una reserva de Platea. AC-13b la contaba como si no
 existiera (`reserved = 0`) y AC-34b esperaba una sola orden. Las dos pasaban
 **solo si se corrían aisladas** — la peor clase de prueba: verde en el
 escritorio, roja en la suite entera.
+
+
+## Lo que ninguna de estas suites puede encontrar
+
+Se descubrió abriendo la aplicación en un navegador, después de que las 229
+comprobaciones estuvieran en verde y el despliegue funcionara.
+
+**Las Edge Functions no tenían CORS.** Ninguna de las tres respondía al
+`OPTIONS` de preflight: devolvían 405 y cero cabeceras. Desde el navegador, eso
+significa que **la petición no llega a salir** — el POST muere antes de
+existir.
+
+Los síntomas no se parecían entre sí: «el QR no carga» y «el botón de pagar no
+hace nada». Misma causa.
+
+Y lo importante para estas suites:
+
+> **Verificar por HTTP no es verificar desde el navegador.** `curl` no hace
+> preflight y no tiene política de mismo origen. Las funciones respondían 200 a
+> todo lo que les pedí desde la terminal — incluidas las 17 comprobaciones de
+> `005_qr_token.mjs` y las 25 de `006_qr_validate.mjs`, todas en verde, todas
+> ciegas a esto.
+
+Una comprobación que lo habría detectado es de una línea:
+
+```bash
+curl -sS -o /dev/null -X OPTIONS "$B/functions/v1/qr-token"   -H "Origin: https://cualquier-cosa"   -H "Access-Control-Request-Method: POST" -w "%{http_code}"   # tiene que dar 204, no 405
+```
+
+Está añadida a los dos `.mjs`. Pero la lección de fondo no es esa comprobación:
+es que **una capa entera del sistema —el navegador— no estaba cubierta por
+ninguna prueba**, y se cubrió sola el día que alguien abrió la app.

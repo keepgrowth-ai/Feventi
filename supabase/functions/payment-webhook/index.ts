@@ -13,6 +13,7 @@
 //   autenticación es la FIRMA del cuerpo, no un JWT de Supabase.
 
 import { createClient } from 'jsr:@supabase/supabase-js@2';
+import { json, preflight } from '../_shared/cors.ts';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -55,6 +56,10 @@ async function hmacHex(secret: string, body: string): Promise<string> {
 }
 
 Deno.serve(async (req: Request) => {
+  // El preflight va primero: si no se contesta, el POST no llega a salir.
+  const pre = preflight(req);
+  if (pre) return pre;
+
   if (req.method !== 'POST') {
     return new Response('método no permitido', { status: 405 });
   }
