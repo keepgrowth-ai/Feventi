@@ -30,7 +30,7 @@ aceptación verificables, después el código.
 | 003 | Detalle de evento: zonas, segmentos, fases, precios | ✅ **listo** — 56 comprobaciones |
 | 002 | Catálogo público | ✅ **listo** — 25 comprobaciones |
 | 004 | Checkout y emisión de tickets | ✅ **listo** — 52 comprobaciones + 4 de concurrencia + compra e2e |
-| 005 | Wallet y QR dinámico | spec listo |
+| 005 | Wallet y QR dinámico | ✅ **listo** — 17 comprobaciones por HTTP |
 | 006 | Validador de puerta | spec listo |
 | 008 | Dashboard del organizador | spec listo |
 | 009 | Soporte contextual | spec listo |

@@ -711,6 +711,47 @@ export type Database = {
         };
         Relationships: [];
       };
+      /**
+       * La wallet. `security_invoker = false` porque hace join con events,
+       * zones y venues, que están limitadas al organizador — con invoker salía
+       * vacía. El filtro `owner_id = auth.uid()` es la única protección.
+       */
+      v_my_tickets: {
+        Row: {
+          id: string | null;
+          code: string | null;
+          status: Database['public']['Enums']['ticket_status'] | null;
+          face_value_cents: number | null;
+          resale_count: number | null;
+          qr_available_from: string | null;
+          issued_at: string | null;
+          used_at: string | null;
+          holder_name: string | null;
+          holder_dni_last4: string | null;
+          owner_id: string | null;
+          event_id: string | null;
+          event_slug: string | null;
+          event_title: string | null;
+          starts_at: string | null;
+          doors_at: string | null;
+          timezone: string | null;
+          event_status: Database['public']['Enums']['event_status'] | null;
+          qr_lead_days: number | null;
+          resale_enabled: boolean | null;
+          max_resales: number | null;
+          venue_name: string | null;
+          venue_city: string | null;
+          zone_name: string | null;
+          zone_kind: Database['public']['Enums']['zone_kind'] | null;
+          row_label: string | null;
+          seat_number: number | null;
+          is_past: boolean | null;
+          /** El Art. 2 resuelto en el servidor: available | too_early | disabled | spent. */
+          qr_state: string | null;
+          disabled_reason: string | null;
+        };
+        Relationships: [];
+      };
       /** Disponibilidad por tier. security_invoker: la RLS se aplica dentro. */
       v_event_availability: {
         Row: {

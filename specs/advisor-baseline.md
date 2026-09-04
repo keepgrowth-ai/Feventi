@@ -13,7 +13,7 @@ es un hallazgo nuevo y hay que resolverlo o justificarlo aquí en el mismo commi
 > obliga a elegir entre el linter y la seguridad real está mal escrita: lo que importa
 > es que ningún hallazgo quede sin mirar, no que la lista salga vacía.
 
-Última corrida: **004 Checkout y emisión** · seguridad 1 `ERROR` argumentado ·
+Última corrida: **005 Wallet y QR** · seguridad 2 `ERROR` argumentados ·
 rendimiento 0 `WARN`.
 
 ## Excepciones argumentadas
@@ -21,6 +21,8 @@ rendimiento 0 `WARN`.
 | nivel | hallazgo | por qué se mantiene |
 |---|---|---|
 | **ERROR** | `security_definer_view` en `public.v_event_public` | **Es el diseño, y la alternativa es peor.** La vista corre con los privilegios de su dueño y por eso salta la RLS: es lo que permite que `anon` lea el catálogo **sin** tener acceso a `events`, `price_tiers`, `price_phases`, `zones` ni `venues`. La otra opción es `security_invoker = true` más políticas de `anon` en esas cinco tablas — y entonces `anon` las consulta **directamente** por PostgREST, con los filtros y joins que quiera, y la regla de visibilidad queda repartida en cinco sitios en lugar de uno. Eso es más superficie y más difícil de auditar, y contradice **002/AC-13**. Lo que sí exige esta decisión es que el `where` de la vista sea intocable sin pensar: está cubierto por siete comprobaciones de 003 (una por estado y visibilidad) más las de 002, y la migración lo dice en un comentario. |
+
+| **ERROR** | `security_definer_view` en `public.v_my_tickets` | **Misma razón, filtro más estrecho.** La wallet hace join con `events`, `zones` y `venues`, que están limitadas al organizador: con `security_invoker = true` el fan veía sus tickets y **cero** eventos, así que la vista salía vacía. La alternativa era dar a `authenticated` políticas de lectura sobre esas tres tablas para los eventos donde tenga un ticket — cuatro políticas más, y la fila entera del evento abierta a cualquiera con una entrada. El filtro de la vista es `t.owner_id = auth.uid()`: una línea, trivial de auditar, y más estrecha que la de `v_event_public`. Cubierto por las comprobaciones de 005. |
 
 ## Aceptados — rendimiento
 

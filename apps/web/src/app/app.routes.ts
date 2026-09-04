@@ -48,7 +48,11 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./features/checkout/checkout.page').then((m) => m.CheckoutPage),
       },
-      // 005  path: 'entradas'             wallet y QR     canActivate: [authGuard]
+      {
+        path: 'entradas',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/wallet/wallet.page').then((m) => m.WalletPage),
+      },
       // 009  path: 'soporte'              mis casos       canActivate: [authGuard]
     ],
   },
