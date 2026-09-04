@@ -30,6 +30,14 @@ import { AuthStore } from '../core/auth.store';
                 class="rounded-[--radius-chip] px-3 py-1.5 text-[12.5px] font-semibold"
                 >Mis entradas</a
               >
+              <!-- 009: los casos se ABREN desde la entrada afectada (AC-21); esto
+                   es solo para volver a leer las respuestas. -->
+              <a
+                routerLink="/soporte"
+                routerLinkActive="bg-coral"
+                class="rounded-[--radius-chip] px-3 py-1.5 text-[12.5px] font-medium text-white/70"
+                >Mis casos</a
+              >
               @if (auth.isOrganizer()) {
                 <a
                   routerLink="/organizador"

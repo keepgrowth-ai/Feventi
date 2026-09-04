@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, inject, input, signal } f
 import { RouterLink } from '@angular/router';
 import { Chip } from '../../shared/ui/chip';
 import { Metric } from '../../shared/ui/metric';
+import { SupportButton } from '../../shared/ui/support-button';
 import { bpsToPercent, negative, soles } from '../../shared/ui/money';
 import { EVENT_STATUS, type EventStatus } from '../eventos/event-status';
 import { EventsStore, type EventRow } from '../eventos/events.store';
@@ -31,7 +32,7 @@ import {
 @Component({
   selector: 'fv-org-dashboard',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Chip, Metric],
+  imports: [RouterLink, Chip, Metric, SupportButton],
   template: `
     @if (evento(); as e) {
       <header class="mb-6">
@@ -228,6 +229,23 @@ import {
             </p>
           }
         </section>
+
+        <!-- 009/AC-21 · historia 5: el organizador abre un caso sobre SU evento
+             —ventas, staff, liquidación o una emergencia durante el evento—. -->
+        <div class="mt-6 rounded-[--radius-card] border border-border bg-surface p-4">
+          <p class="text-[14px] font-bold">¿Necesitas ayuda con este evento?</p>
+          <p class="mt-0.5 text-[12.5px] text-fg-muted">
+            Ventas, liquidación, staff o una urgencia durante el evento.
+          </p>
+          <div class="mt-2">
+            <fv-support-button
+              [ctx]="{ eventId: e.id }"
+              defaultKind="other"
+              [contextLabel]="e.title ?? 'este evento'"
+              label="Abrir un caso"
+            />
+          </div>
+        </div>
 
         <!-- Art. 7.5 · explicar el hueco, o acaba en un caso de soporte -->
         <p class="mt-6 rounded-[--radius-card] border border-border bg-muted px-4 py-3 text-[12.5px] text-fg-muted">

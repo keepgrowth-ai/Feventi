@@ -33,7 +33,7 @@ aceptación verificables, después el código.
 | 005 | Wallet y QR dinámico | ✅ **listo** — 17 comprobaciones por HTTP |
 | 006 | Validador de puerta | ✅ **listo** — 40 comprobaciones + 25 por HTTP, con doble escaneo en paralelo |
 | 008 | Dashboard del organizador | ✅ **listo** — 22 comprobaciones, con los dos modelos de cargo |
-| 009 | Soporte contextual | spec listo |
+| 009 | Soporte contextual | ✅ **listo** — 32 comprobaciones, con la doble vía cerrada por índice |
 
 Orden de construcción: **001 → 007 → 003 → 002 → 004 → 005 → 006 → 008 → 009**.
 El por qué está en el roadmap.

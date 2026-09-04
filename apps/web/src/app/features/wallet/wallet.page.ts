@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Chip } from '../../shared/ui/chip';
+import { SupportButton } from '../../shared/ui/support-button';
 import { TicketQr } from '../../shared/ui/ticket-qr';
 import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.store';
 
@@ -27,7 +28,7 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
 @Component({
   selector: 'fv-wallet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Chip, TicketQr],
+  imports: [RouterLink, Chip, SupportButton, TicketQr],
   template: `
     <header class="mb-5">
       <h1 class="text-2xl font-black tracking-[-0.5px]">Mis entradas</h1>
@@ -131,6 +132,16 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
             <p class="mt-3 text-[12px] font-semibold text-fg-soft">
               Muestra este QR en puerta. Las capturas no funcionan.
             </p>
+
+            <!-- 009/AC-21: la ayuda vive DONDE está el problema. El caso sale ya
+                 con esta entrada adjunta, así que el fan no teclea ningún código. -->
+            <div class="mt-3">
+              <fv-support-button
+                [ctx]="{ ticketId: t.id }"
+                [defaultKind]="t.qr_state === 'available' ? 'qr' : 'ticket'"
+                [contextLabel]="t.event_title + ' · ' + t.code"
+              />
+            </div>
           </div>
         </div>
       </section>
@@ -159,6 +170,14 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
               @if (copy(t).detail) {
                 <p class="mt-1.5 text-[12px] text-fg-muted">{{ copy(t).detail }}</p>
               }
+              <div class="mt-2">
+                <fv-support-button
+                  [ctx]="{ ticketId: t.id }"
+                  defaultKind="ticket"
+                  [contextLabel]="t.event_title + ' · ' + t.code"
+                  label="Reportar un problema"
+                />
+              </div>
             </li>
           }
         </ul>

@@ -24,6 +24,9 @@ type Row = EventRow & {
   template: `
     <header class="mb-5">
       <h1 class="text-2xl font-black tracking-[-0.5px]">Solicitudes de evento</h1>
+        <a routerLink="/admin/soporte" class="mt-1 inline-block text-[12.5px] font-semibold text-violet">
+          Ir a la cola de soporte →
+        </a>
       <p class="mt-1 text-[13px] text-fg-muted">
         Ninguna solicitud pasa a venta sin aprobación. Toda decisión queda registrada.
       </p>

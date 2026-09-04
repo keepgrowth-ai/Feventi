@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth.store';
 import { Chip } from '../../shared/ui/chip';
+import { SupportButton } from '../../shared/ui/support-button';
 import { PriceBreakdown } from '../../shared/ui/price-breakdown';
 import { soles, type PriceLine } from '../../shared/ui/money';
 import { CheckoutStepper, type CheckoutStep } from './stepper';
@@ -35,7 +36,7 @@ import { CheckoutStore, mmss, secondsLeft, type OrderWithItems } from './checkou
 @Component({
   selector: 'fv-checkout',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, Chip, PriceBreakdown, CheckoutStepper],
+  imports: [FormsModule, RouterLink, Chip, PriceBreakdown, CheckoutStepper, SupportButton],
   template: `
     @if (order(); as o) {
       <div class="mx-auto max-w-3xl">
@@ -279,6 +280,17 @@ import { CheckoutStore, mmss, secondsLeft, type OrderWithItems } from './checkou
                 <p class="mt-3 border-t border-border pt-2 text-[11px] text-fg-subtle">
                   Pago en sandbox. Todavía no se procesan cobros reales.
                 </p>
+
+                <!-- 009/AC-21. Aquí el caso llega con la ORDEN adjunta, que es el
+                     objeto del problema cuando algo falla antes de haber entrada. -->
+                <div class="mt-3">
+                  <fv-support-button
+                    [ctx]="{ orderId: o.id }"
+                    defaultKind="payment"
+                    [contextLabel]="'la compra ' + o.code"
+                    label="Algo salió mal con esta compra"
+                  />
+                </div>
               </section>
             </aside>
           </div>

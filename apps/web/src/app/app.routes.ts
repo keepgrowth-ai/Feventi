@@ -54,7 +54,11 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/wallet/wallet.page').then((m) => m.WalletPage),
       },
-      // 009  path: 'soporte'              mis casos       canActivate: [authGuard]
+      {
+        path: 'soporte',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/soporte/mis-casos.page').then((m) => m.MisCasosPage),
+      },
     ],
   },
 
@@ -106,9 +110,11 @@ export const routes: Routes = [
             (m) => m.AdminSolicitudDetallePage,
           ),
       },
+      {
+        path: 'soporte',
+        loadComponent: () => import('./features/admin/soporte.page').then((m) => m.AdminSoportePage),
+      },
       { path: '', pathMatch: 'full', redirectTo: 'solicitudes' },
-
-      // 009  path: 'soporte'              cola de casos
     ],
   },
 

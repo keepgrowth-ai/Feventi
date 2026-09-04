@@ -681,6 +681,45 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      /** Un caso de soporte. El contexto lo rellena el servidor (009/AC-03). */
+      support_cases: {
+        Row: {
+          id: string;
+          code: string;
+          kind: Database['public']['Enums']['support_kind'];
+          status: Database['public']['Enums']['support_status'];
+          priority: Database['public']['Enums']['support_priority'];
+          opened_by: string;
+          assigned_to: string | null;
+          event_id: string | null;
+          order_id: string | null;
+          ticket_id: string | null;
+          checkin_id: string | null;
+          subject: string;
+          body: string;
+          created_at: string;
+          updated_at: string;
+          resolved_at: string | null;
+        };
+        /** Solo por RPC: `open_support_case` y `manage_support_case`. */
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      /** Append-only (Art. 8.1). `internal` la protege la RLS, no el front. */
+      support_messages: {
+        Row: {
+          id: string;
+          case_id: string;
+          author_id: string | null;
+          body: string;
+          internal: boolean;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
       /** El staff de puerta: un rol POR EVENTO, no del perfil (006). */
       event_staff: {
         Row: {
@@ -821,6 +860,32 @@ export type Database = {
         };
         Relationships: [];
       };
+      /** La cola de casos. `opened_by` NO esta: el organizador no sabe quien abrio (D-06). */
+      v_support_queue: {
+        Row: {
+          id: string | null;
+          code: string | null;
+          kind: Database['public']['Enums']['support_kind'] | null;
+          status: Database['public']['Enums']['support_status'] | null;
+          priority: Database['public']['Enums']['support_priority'] | null;
+          subject: string | null;
+          created_at: string | null;
+          updated_at: string | null;
+          resolved_at: string | null;
+          event_id: string | null;
+          ticket_id: string | null;
+          order_id: string | null;
+          checkin_id: string | null;
+          assigned_to: string | null;
+          event_title: string | null;
+          ticket_code: string | null;
+          order_code: string | null;
+          /** «yo», el nombre real (solo Admin) o «un asistente». Nunca el id. */
+          opened_by_label: string | null;
+          messages: number | null;
+        };
+        Relationships: [];
+      };
       /** Ventas del evento, Art. 5. bruto = lo cobrado al fan (008/AC-08). */
       v_event_sales: {
         Row: {
@@ -902,6 +967,48 @@ export type Database = {
        * alguien la llamaría desde el front y se encontraría un 403 en la puerta.
        */
       gate_find_by_dni: { Args: { p_event_id: string; p_dni: string }; Returns: Json };
+      /**
+       * Abre un caso. El cliente manda el OBJETO; el evento y la orden los
+       * rellena el servidor desde el ticket (009/AC-03).
+       */
+      open_support_case: {
+        Args: {
+          p_kind: Database['public']['Enums']['support_kind'];
+          p_subject: string;
+          p_body: string;
+          p_ticket_id?: string | null;
+          p_order_id?: string | null;
+          p_event_id?: string | null;
+          p_checkin_id?: string | null;
+        };
+        Returns: string;
+      };
+      post_support_message: {
+        Args: { p_case_id: string; p_body: string; p_internal?: boolean };
+        Returns: string;
+      };
+      /** Solo Admin. Estado, prioridad, asignación y nota interna, en un sitio. */
+      manage_support_case: {
+        Args: {
+          p_case_id: string;
+          p_status?: Database['public']['Enums']['support_status'] | null;
+          p_priority?: Database['public']['Enums']['support_priority'] | null;
+          p_assign?: string | null;
+          p_note?: string | null;
+        };
+        Returns: undefined;
+      };
+      /** Solo Admin. Deja asiento en ticket_events con el caso en meta (Art. 8.3). */
+      admin_ticket_action: {
+        Args: {
+          p_case_id: string;
+          p_ticket_id: string;
+          p_action: Database['public']['Enums']['ticket_event_action'];
+          p_note?: string | null;
+          p_corrects?: string | null;
+        };
+        Returns: string;
+      };
       /** Detalle público por slug: acepta `unlisted`, y por eso no es una vista. */
       get_public_event: { Args: { p_slug: string }; Returns: Json };
       /** Devuelve el id de la orden. Ver specs/004-checkout-emision/plan.md. */
@@ -992,6 +1099,13 @@ export type Database = {
         | 'cancelled';
       payment_status: 'pending' | 'succeeded' | 'failed' | 'refunded' | 'disputed';
       ticket_status: 'active' | 'listed' | 'transferred' | 'used' | 'void' | 'refunded';
+      /** D-12: refund, cancellation y disputa son tres procesos distintos. */
+      support_kind:
+        | 'payment' | 'ticket' | 'qr' | 'resale' | 'courtesy'
+        | 'group' | 'refund' | 'cancellation' | 'ownership' | 'other';
+      support_status:
+        | 'open' | 'waiting_user' | 'in_progress' | 'escalated' | 'resolved' | 'closed';
+      support_priority: 'low' | 'normal' | 'high' | 'urgent';
       /** Los cuatro del mockup. No hay un quinto, y el enum lo garantiza. */
       checkin_result: 'allowed' | 'manual_review' | 'already_used' | 'denied';
       checkin_reason:

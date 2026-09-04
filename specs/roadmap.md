@@ -16,7 +16,7 @@ alguien tiene que atender cuando algo falla).
 | [006](006-validador-puerta/spec.md) ✅ | Validador de puerta | Staff | Validador |
 | [007](007-solicitud-aprobacion/spec.md) ✅ | Solicitud de evento y aprobación | Organizador + Admin | Admin: solicitudes |
 | [008](008-dashboard-organizador/spec.md) ✅ | Dashboard del organizador | Organizador | Dashboard |
-| [009](009-soporte/spec.md) | Soporte contextual | Fan + Admin | Admin: soporte |
+| [009](009-soporte/spec.md) ✅ | Soporte contextual | Fan + Admin | Admin: soporte |
 
 Orden de construcción obligatorio: **001 → 007 → 003 → 002 → 004 → 005 → 006 → 008 → 009**.
 

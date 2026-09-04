@@ -10,6 +10,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { QrScanner } from '../../shared/ui/qr-scanner';
+import { SupportButton } from '../../shared/ui/support-button';
 import {
   GateStore,
   verdictCopy,
@@ -45,7 +46,7 @@ type Panel = 'scanner' | 'dni' | 'historial';
 @Component({
   selector: 'fv-gate-scanner',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, QrScanner],
+  imports: [FormsModule, RouterLink, QrScanner, SupportButton],
   template: `
     <!-- ── Cabecera: dónde estoy ─────────────────────────────────────────── -->
     <header class="sticky top-0 z-30 border-b border-white/10 bg-ink px-4 py-3">
@@ -264,7 +265,22 @@ type Panel = 'scanner' | 'dni' | 'historial';
             >
               Entendido
             </button>
-            <!-- 009 engancha aquí: el caso ya sabe de qué escaneo habla. -->
+            <!-- 009 · historia 4: el caso nace del escaneo que lo disparó, con
+                 su ticket y su puerta ya adjuntos. El staff no teclea nada.
+                 Y D-05: la excepción NO la ejecuta él — la pantalla lo dice para
+                 que no deje esperando a alguien en la cola. -->
+            <div class="mt-3 rounded-[--radius-inner] bg-white/95 p-3 text-ink" (click)="$event.stopPropagation()">
+              <fv-support-button
+                [ctx]="{ ticketId: v.ticket?.id, checkinId: v.checkin_id, eventId: eventId() }"
+                defaultKind="qr"
+                [contextLabel]="'el escaneo de ' + (v.ticket?.code ?? 'un código ilegible') + ' en ' + v.gate"
+                label="Reportar incidencia de este escaneo"
+              />
+              <p class="mt-1.5 text-[12px] text-fg-muted">
+                Queda registrado para Feventi. La excepción de acceso la autoriza
+                Feventi, no la puerta: no hagas esperar a la persona por esto.
+              </p>
+            </div>
             <p class="mt-2 text-center text-base opacity-75">
               Escaneo {{ v.checkin_id.slice(0, 8) }}
             </p>
