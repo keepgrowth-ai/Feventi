@@ -37,6 +37,25 @@ aceptación verificables, después el código.
 
 Orden de construcción: **001 → 007 → 003 → 002 → 004 → 005 → 006 → 008 → 009**.
 
+## La demo de la presentación
+
+**https://feventi-250048151842.us-central1.run.app**
+
+Dos cuentas, una por dispositivo. La del portátil lleva los tres roles de gestión
+para no tener que cerrar sesión durante el recorrido.
+
+| dispositivo | cuenta | clave | rol |
+|---|---|---|---|
+| móvil | `camila@feventi.demo` | `Feventi2026!` | compradora |
+| portátil | `operaciones@feventi.demo` | `Feventi2026!` | puerta · organizador · Feventi |
+
+El escenario lo siembra `supabase/seed/demo_presentacion.sql`, y **no caduca**: un
+trabajo de `pg_cron` recoloca el evento cada medianoche y devuelve las entradas
+usadas a activas, así que el recorrido se puede repetir cualquier día sin
+preparar nada.
+
+> Los pagos siguen en sandbox (Art. 13). No se procesa ningún cobro real.
+
 ## Desplegar
 
 `docs/DESPLIEGUE.md` — GitHub, Cloud Run y la conexión con Supabase, paso a paso.
