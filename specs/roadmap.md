@@ -29,7 +29,7 @@ pantalla de operación: sin un evento aprobado y publicado no hay nada que catal
 crear datos de prueba salteándose la aprobación instala el hábito que el Art. 4
 prohíbe. 002 después de 003 porque el catálogo es una proyección del detalle.
 
-## Fase 1.5 — Capa social
+## Fase 1.5 — Capa social ✅
 
 El acta del 4 de septiembre fija esto como **el diferencial del MVP**: Feventi no es
 una ticketera, es una plataforma social de eventos. El efecto que se pide es concreto
@@ -38,10 +38,10 @@ entrada»* en la ficha del evento.
 
 | # | Feature | Mundo | De dónde sale |
 |---|---|---|---|
-| [010](010-grafo-social/spec.md) | Grafo social: amistad, bloqueo y modo ninja efectivo | Fan | Art. 7.3 · acta §5, §7 |
-| [011](011-senales-sociales/spec.md) | Señales sociales en catálogo y evento | Público + Fan | mockup L92/L153 · acta §6 |
-| [012](012-compra-grupal/spec.md) | Compra grupal | Fan | Art. 11 · acta §5 |
-| [013](013-puntos-wallet/spec.md) | Puntos por asistencia en la wallet | Fan | mockup L338/L685 · acta §5 |
+| [010](010-grafo-social/spec.md) ✅ | Grafo social: amistad, bloqueo y modo ninja efectivo | Fan | Art. 7.3 · acta §5, §7 |
+| [011](011-senales-sociales/spec.md) ✅ | Señales sociales en catálogo y evento | Público + Fan | mockup L92/L153 · acta §6 |
+| [012](012-compra-grupal/spec.md) ✅ | Compra grupal | Fan | Art. 11 · acta §5 |
+| [013](013-puntos-wallet/spec.md) ✅ | Puntos por asistencia en la wallet | Fan | mockup L338/L685 · acta §5 |
 
 Orden obligatorio: **010 → 011 → 012 → 013**.
 

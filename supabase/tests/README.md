@@ -40,6 +40,10 @@ su propio bloque:
 | 007 | — | `20507000001`, `20507000002` |
 | 008 | `a8000000…` | `20508000001`, `20508000002` |
 | 009 | `a9000000…` | `20509000001` |
+| 010 | `b0000000…` | — |
+| 011 | `b1000000-0000-4000-8000-…` | `20511000001` |
+| 012 | `b2000000-0000-4000-8000-…` | `20512000001` |
+| 013 | `b3000000-0000-4000-8000-…` | `20513000001` |
 
 Lo destapó 003 al chocar con el RUC de «Andes Live SAC», que puso
 `demo_kpop.sql`. Una suite que solo pasa contra una base recién creada no sirve
@@ -116,6 +120,50 @@ existiera (`reserved = 0`) y AC-34b esperaba una sola orden. Las dos pasaban
 **solo si se corrían aisladas** — la peor clase de prueba: verde en el
 escritorio, roja en la suite entera.
 
+
+## Lo que salió al construir la capa social (010–013)
+
+Cinco correcciones, y **cuatro de las cinco las destapó una comprobación de
+camino feliz**, no un guardarraíl. Vale la pena decirlo así de claro: los
+guardarraíles estaban todos en verde mientras el producto no funcionaba.
+
+**Un `grant` de tabla y una política de RLS son dos permisos distintos.** Las
+políticas de `delete` de `friend_edges` no servían para nada: la migración
+`0009` invirtió los privilegios por defecto, así que la tabla nueva nace solo
+con `select` y Postgres devuelve `42501` **antes** de evaluar la política. Lo
+vio AC-15c —«sí puede borrar lo suyo»— mientras AC-15a y AC-15b, los dos
+«no puede», seguían pasando. Desde el lado del guardarraíl, un `revoke` de más
+se ve exactamente igual que uno bien puesto. *(010, `0053`)*
+
+**Una vista `security_invoker` no puede leer lo que su llamante no puede.**
+`v_my_friends` salía vacía: hace join con `profiles`, y la política de
+`profiles` es solo para su dueño. Es el mismo fallo que 0041 → 0042 con la
+wallet, dos features después. *(010, `0054`)*
+
+**Y al pasarla a `definer`, el `where` pasa a ser la única protección.** Cada
+vista definer de esta fase lleva su propia comprobación de que un tercero la ve
+VACÍA —010/AC-07d, 011/AC-11—, porque un `where` mal editado convierte «mis
+amigos» en «el grafo social de la plataforma».
+
+**Un `grant execute … to authenticated` no quita el `execute` de `PUBLIC`.**
+Las tres RPC de 010 nacieron publicadas en `/rest/v1/rpc/` para `anon`. Se ve
+en la ACL: las de Fase 1 llevan `postgres=X | authenticated=X | service_role=X`;
+las nuevas llevaban además la entrada vacía `=X/postgres`. *(010, `0055`)*
+
+**Una política que consulta su propia tabla recursa.** `group_members` se
+preguntaba a sí misma si el llamante era miembro: `42P17: infinite recursion`.
+El proyecto ya tenía la salida escrita desde `0004` —un helper definer que
+devuelve un array—, solo había que usarla. **El linter no lo ve**: solo aparece
+al leer la tabla. *(012, `0059`)*
+
+### Y dos trampas del arnés, nuevas
+
+**Medir desde quien acaba de salir da cero por RLS, no por el producto.** 012
+contaba los miembros restantes de un grupo desde la sesión de quien se acababa
+de ir — y esa persona ya no ve el grupo. El conteo se hace desde quien se queda.
+
+**`\gset` es de psql y aquí no existe.** Para pasar un id de un statement al
+siguiente se usa una tabla temporal, no una variable del cliente.
 
 ## Lo que ninguna de estas suites puede encontrar
 
