@@ -115,6 +115,24 @@ export class PublicEventStore {
   }
 
   /**
+   * Igual que `getBySlug`, pero desde el id.
+   *
+   * Lo necesita 012: un grupo de compra guarda `event_id`, no el slug, porque
+   * el slug puede cambiar y la pertenencia al evento no. `get_public_event`
+   * exige el slug a propósito —así un evento `unlisted` se abre por su enlace
+   * sin poder enumerarse (003)— de modo que aquí se resuelve el slug primero.
+   */
+  async getById(id: string): Promise<PublicEvent | null> {
+    const { data } = await supabase
+      .from('v_event_public')
+      .select('slug')
+      .eq('id', id)
+      .maybeSingle();
+    const slug = (data as { slug: string } | null)?.slug;
+    return slug ? this.getBySlug(slug) : null;
+  }
+
+  /**
    * El catálogo. Filtros, orden y paginación por cursor.
    *
    * Se piden las columnas de forma explícita a propósito: `select('*')` traería

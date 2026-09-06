@@ -30,12 +30,25 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, Chip, SupportButton, TicketQr],
   template: `
-    <header class="mb-5">
-      <h1 class="text-2xl font-black tracking-[-0.5px]">Mis entradas</h1>
-      <p class="mt-1 text-[13px] text-fg-muted">
-        Tu entrada es una credencial viva. El QR se muestra desde aquí y cambia cada
-        {{ slotSeconds() }} segundos.
-      </p>
+    <header class="mb-5 flex flex-wrap items-start justify-between gap-4">
+      <div>
+        <h1 class="text-2xl font-black tracking-[-0.5px]">Mis entradas</h1>
+        <p class="mt-1 text-[13px] text-fg-muted">
+          Tu entrada es una credencial viva. El QR se muestra desde aquí y cambia cada
+          {{ slotSeconds() }} segundos.
+        </p>
+      </div>
+
+      <!-- 013 · mockup L338. Cero NO se pinta: «0 puntos» le dice al fan que la
+           función existe y que él no la ha usado, que es la peor combinación. -->
+      @if (puntos() > 0) {
+        <div class="rounded-[--radius-card] bg-violet/10 px-4 py-2.5 text-right">
+          <p class="text-xl font-black tabular-nums text-violet">{{ puntos() }}</p>
+          <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-fg-muted">
+            puntos
+          </p>
+        </div>
+      }
     </header>
 
     @if (store.error(); as e) {
@@ -227,6 +240,7 @@ export class WalletPage implements OnDestroy {
   protected readonly copy = qrCopy;
 
   protected readonly tickets = signal<readonly WalletTicket[]>([]);
+  protected readonly puntos = signal(0);
   /** En memoria, y solo aquí. Nunca en localStorage (AC-21). */
   protected readonly token = signal<QrToken | null>(null);
   protected readonly left = signal(0);
@@ -271,6 +285,8 @@ export class WalletPage implements OnDestroy {
   }
 
   private async load(): Promise<void> {
+    // Aparte de las entradas: si el saldo falla, la wallet sigue sirviendo.
+    void this.store.points().then((p) => this.puntos.set(p));
     this.tickets.set(await this.store.list());
     const t = this.proxima();
     if (t?.qr_state === 'available') await this.refresh(t.id);

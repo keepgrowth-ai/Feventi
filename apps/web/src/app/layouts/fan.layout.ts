@@ -1,6 +1,7 @@
-import { Component, ChangeDetectionStrategy, inject } from '@angular/core';
+import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthStore } from '../core/auth.store';
+import { SocialStore } from '../features/social/social.store';
 
 /**
  * Modo Fan / Público (Art. 10): blanco y pastel, mobile-first, acción coral.
@@ -30,6 +31,34 @@ import { AuthStore } from '../core/auth.store';
                 class="rounded-[--radius-chip] px-3 py-1.5 text-[12.5px] font-semibold"
                 >Mis entradas</a
               >
+              <!-- 010: el punto coral es lo más parecido a una notificación que
+                   se puede hacer sin centro de notificaciones (D-11), y no
+                   cuesta una consulta nueva: sale de v_my_friend_requests. -->
+              <a
+                routerLink="/amigos"
+                routerLinkActive="bg-coral"
+                class="relative rounded-[--radius-chip] px-3 py-1.5 text-[12.5px] font-medium text-white/70"
+                >Amigos
+                @if (solicitudes() > 0) {
+                  <span
+                    class="absolute right-1.5 top-1 size-2 rounded-full bg-coral"
+                    [attr.aria-label]="solicitudes() + ' solicitudes de amistad'"
+                  ></span>
+                }
+              </a>
+              <a
+                routerLink="/grupos"
+                routerLinkActive="bg-coral"
+                class="rounded-[--radius-chip] px-3 py-1.5 text-[12.5px] font-medium text-white/70"
+                >Grupos</a
+              >
+              <a
+                routerLink="/perfil"
+                routerLinkActive="bg-coral"
+                class="rounded-[--radius-chip] px-3 py-1.5 text-[12.5px] font-medium text-white/70"
+                >Perfil</a
+              >
+
               <!-- 009: los casos se ABREN desde la entrada afectada (AC-21); esto
                    es solo para volver a leer las respuestas. -->
               <a
@@ -85,4 +114,13 @@ import { AuthStore } from '../core/auth.store';
 })
 export class FanLayout {
   protected readonly auth = inject(AuthStore);
+  private readonly social = inject(SocialStore);
+
+  protected readonly solicitudes = signal(0);
+
+  constructor() {
+    if (this.auth.isSignedIn()) {
+      void this.social.requests().then((r) => this.solicitudes.set(r.length));
+    }
+  }
 }

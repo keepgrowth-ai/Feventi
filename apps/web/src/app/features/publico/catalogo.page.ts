@@ -1,7 +1,10 @@
 import { Component, ChangeDetectionStrategy, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { AuthStore } from '../../core/auth.store';
 import { Chip } from '../../shared/ui/chip';
+import { SocialSignal } from '../../shared/ui/social-signal';
+import { SocialStore, type EventSignal } from '../social/social.store';
 import { soles } from '../../shared/ui/money';
 import {
   PublicEventStore,
@@ -25,7 +28,7 @@ import {
 @Component({
   selector: 'fv-catalogo',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, Chip],
+  imports: [FormsModule, RouterLink, Chip, SocialSignal],
   template: `
     <!-- Destacado -->
     @if (featured(); as f) {
@@ -106,6 +109,23 @@ import {
           <option [ngValue]="c">{{ c }}</option>
         }
       </select>
+      <!-- 011 · mockup L92. Solo para quien tiene sesión: anon, por
+           definición, no tiene amigos. Filtra sobre la lista ya cargada, sin
+           ida y vuelta al servidor. -->
+      @if (auth.isSignedIn()) {
+        <label
+          class="flex cursor-pointer items-center gap-2 rounded-[--radius-chip] border border-border bg-surface px-3 py-2 text-[13px]"
+        >
+          <input
+            name="conAmigos"
+            type="checkbox"
+            [(ngModel)]="form.conAmigos"
+            (change)="apply()"
+            class="size-4 accent-violet"
+          />
+          Con amigos asistiendo
+        </label>
+      }
       <input
         name="from"
         type="date"
@@ -150,7 +170,7 @@ import {
 
     <!-- Cards -->
     <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      @for (e of rows(); track e.id) {
+      @for (e of visibles(); track e.id) {
         <a
           [routerLink]="['/eventos', e.slug]"
           class="flex flex-col overflow-hidden rounded-[--radius-card] border border-border bg-surface"
@@ -173,6 +193,16 @@ import {
             </p>
             @if (e.starts_at) {
               <p class="text-[12.5px] text-fg-muted">{{ longDate(e.starts_at) }}</p>
+            }
+            <!-- Sin la nota de ninja: en la tarjeta no cabe una segunda línea,
+                 y sí cabe en la ficha, que es donde se decide comprar. -->
+            @if (senales().get(e.id); as sn) {
+              <div class="mt-1.5">
+                <fv-social-signal
+                  [going]="sn.friends_going"
+                  [interested]="sn.friends_interested"
+                />
+              </div>
             }
             <div class="mt-auto pt-3">
               @if (e.from_price_cents != null) {
@@ -237,10 +267,13 @@ import {
 })
 export class CatalogoPage {
   protected readonly store = inject(PublicEventStore);
+  protected readonly auth = inject(AuthStore);
+  private readonly social = inject(SocialStore);
   protected readonly money = soles;
   protected readonly badge = demandBadge;
 
   protected readonly rows = signal<readonly CatalogEvent[]>([]);
+  protected readonly senales = signal<ReadonlyMap<string, EventSignal>>(new Map());
   protected readonly cursor = signal<CatalogCursor | null>(null);
   protected readonly facets = signal<{ categories: string[]; cities: string[] }>({
     categories: [],
@@ -255,6 +288,7 @@ export class CatalogoPage {
     to: '',
     sort: 'date' as CatalogSort,
     onlyAvailable: false,
+    conAmigos: false,
   };
 
   /** Distingue «vacío por filtro» de «vacío de verdad». */
@@ -265,7 +299,19 @@ export class CatalogoPage {
       !!this.form.city ||
       !!this.form.from ||
       !!this.form.to ||
-      this.form.onlyAvailable,
+      this.form.onlyAvailable ||
+      this.form.conAmigos,
+  );
+
+  /**
+   * El filtro social se resuelve en el cliente, no en la consulta: el catálogo
+   * es la misma vista pública que lee `anon`, y meterle un join social
+   * obligaría a un left join que da null para la mitad del tráfico.
+   */
+  protected readonly visibles = computed(() =>
+    this.form.conAmigos
+      ? this.rows().filter((e) => this.senales().has(e.id))
+      : this.rows(),
   );
 
   /** El destacado solo se pinta sin filtros: con filtros, estorba. */
@@ -282,6 +328,8 @@ export class CatalogoPage {
   private async init(): Promise<void> {
     this.facets.set(await this.store.listFacets());
     await this.apply();
+    // Después del catálogo y sin bloquearlo: la señal es un adorno (AC-18).
+    if (this.auth.isSignedIn()) this.senales.set(await this.social.signals());
   }
 
   protected async apply(): Promise<void> {
@@ -308,6 +356,7 @@ export class CatalogoPage {
       to: '',
       sort: 'date',
       onlyAvailable: false,
+      conAmigos: false,
     };
     await this.apply();
   }

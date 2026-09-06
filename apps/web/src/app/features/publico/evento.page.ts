@@ -2,6 +2,9 @@ import { Component, ChangeDetectionStrategy, computed, inject, input, signal } f
 import { Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth.store';
 import { Chip } from '../../shared/ui/chip';
+import { SocialSignal } from '../../shared/ui/social-signal';
+import { GruposStore } from '../social/grupos.store';
+import { SocialStore, type EventSignal } from '../social/social.store';
 import { soles } from '../../shared/ui/money';
 import { CheckoutStore, type ReserveItem } from '../checkout/checkout.store';
 import { Seleccion } from './seleccion';
@@ -29,7 +32,7 @@ import {
 @Component({
   selector: 'fv-evento-publico',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Chip, Seleccion],
+  imports: [RouterLink, Chip, Seleccion, SocialSignal],
   template: `
     @if (ev(); as e) {
       <!-- Key visual -->
@@ -78,6 +81,46 @@ import {
           </div>
         </div>
       </section>
+
+      <!-- ── 011 · la señal social ────────────────────────────────────────
+           Va justo debajo del key visual y encima del precio: el acta §6 dice
+           que la señal debe llegar ANTES de la decisión de compra, no como
+           confirmación después. Si no hay señal, no ocupa nada. -->
+      @if (auth.isSignedIn()) {
+        <section class="mt-4 flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <fv-social-signal
+              [going]="senal()?.friends_going ?? 0"
+              [interested]="senal()?.friends_interested ?? 0"
+              [conNota]="true"
+            />
+          </div>
+
+          <div class="flex shrink-0 flex-wrap gap-2">
+          <!-- 012 · Art. 11. Solo con amigos: sin grafo no hay grupo, y decirlo
+               aqui evita que alguien lo pulse y encuentre una lista vacia. -->
+          <button
+            type="button"
+            (click)="crearGrupo()"
+            class="min-h-10 rounded-[--radius-chip] border border-violet px-4 text-[13px] font-semibold text-violet"
+          >
+            Comprar con amigos
+          </button>
+          <button
+            type="button"
+            (click)="alternarInteres()"
+            class="min-h-10 shrink-0 rounded-[--radius-chip] border px-4 text-[13px] font-semibold"
+            [class]="
+              meInteresa()
+                ? 'border-violet bg-violet/10 text-violet'
+                : 'border-border text-fg-soft'
+            "
+          >
+            {{ meInteresa() ? 'Te interesa' : 'Me interesa' }}
+          </button>
+          </div>
+        </section>
+      }
 
       <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
         <div class="space-y-6">
@@ -308,10 +351,14 @@ export class EventoPublicoPage {
 
   protected readonly store = inject(PublicEventStore);
   private readonly checkout = inject(CheckoutStore);
-  private readonly auth = inject(AuthStore);
+  protected readonly auth = inject(AuthStore);
+  private readonly social = inject(SocialStore);
+  private readonly grupos = inject(GruposStore);
   private readonly router = inject(Router);
 
   protected readonly ev = signal<PublicEvent | null>(null);
+  protected readonly senal = signal<EventSignal | null>(null);
+  protected readonly meInteresa = signal(false);
   protected readonly openZone = signal<string | null>(null);
   protected readonly money = soles;
 
@@ -340,7 +387,47 @@ export class EventoPublicoPage {
   }
 
   protected async load(): Promise<void> {
-    this.ev.set(await this.store.getBySlug(this.slug()));
+    const e = await this.store.getBySlug(this.slug());
+    this.ev.set(e);
+    if (e && this.auth.isSignedIn()) void this.cargarSocial(e.id);
+  }
+
+  /**
+   * Aparte de `load` y sin `await` en la ruta principal: la señal es un adorno
+   * (AC-18). Si esta consulta se cae, la ficha ya está pintada.
+   */
+  private async cargarSocial(eventId: string): Promise<void> {
+    const [mapa, mio] = await Promise.all([
+      this.social.signals(),
+      this.social.myInterest(eventId),
+    ]);
+    this.senal.set(mapa.get(eventId) ?? null);
+    this.meInteresa.set(mio);
+  }
+
+  /**
+   * Crea el grupo y lleva a `/grupos`, que es donde se añaden los amigos y se
+   * reserva. No se hace aqui: mezclar el flujo de grupo con el de compra
+   * individual en la misma pantalla es la forma mas facil de romper el que ya
+   * funciona.
+   */
+  protected async crearGrupo(): Promise<void> {
+    const e = this.ev();
+    if (!e) return;
+    const id = await this.grupos.create(e.id);
+    // Si ya tenia grupo para este evento, la pagina se lo enseña igual.
+    void this.router.navigate(['/grupos'], { queryParams: id ? { nuevo: id } : {} });
+  }
+
+  protected async alternarInteres(): Promise<void> {
+    const e = this.ev();
+    if (!e) return;
+    const nuevo = !this.meInteresa();
+    this.meInteresa.set(nuevo);
+    const error = await this.social.setInterest(e.id, nuevo);
+    // Se revierte si el servidor dijo que no: el botón no miente sobre lo que
+    // los demás van a ver.
+    if (error) this.meInteresa.set(!nuevo);
   }
 
   /** El tier de la zona sin segmento (o el más barato) en la fase activa. */

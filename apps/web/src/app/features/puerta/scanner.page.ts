@@ -252,6 +252,12 @@ type Panel = 'scanner' | 'dni' | 'historial';
           <p class="mx-auto mt-4 max-w-sm text-lg font-semibold leading-snug">
             {{ copy(v).instruccion }}
           </p>
+          <!-- 013 · mockup L685. Solo en ACCESO PERMITIDO: es el único caso en
+               que se otorgan. No cuesta una consulta — el punto ya se abonó en
+               la misma transacción que el ingreso. -->
+          @if (v.result === 'allowed') {
+            <p class="mt-3 text-base font-bold opacity-90">+50 puntos por check-in</p>
+          }
         </div>
 
         <div class="pb-2">

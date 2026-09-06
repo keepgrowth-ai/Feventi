@@ -72,6 +72,19 @@ export class WalletStore {
   }
 
   /**
+   * El saldo de puntos (013). Una fila, una columna.
+   *
+   * Devuelve 0 si falla y no toca `error`: los puntos son un adorno de la
+   * cabecera, y un fallo aquí no puede tapar la lista de entradas, que es
+   * para lo que el fan abrió la pantalla.
+   */
+  async points(): Promise<number> {
+    const { data, error } = await supabase.from('v_my_points').select('total').maybeSingle();
+    if (error) return 0;
+    return (data as { total: number } | null)?.total ?? 0;
+  }
+
+  /**
    * Pide el token del slot actual a la Edge Function.
    *
    * Se llama por `fetch` y no por `supabase.functions.invoke` para poder leer el

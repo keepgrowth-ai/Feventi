@@ -768,6 +768,115 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      /**
+       * 010. Solicitud y amistad son el mismo hecho en dos momentos, así que
+       * comparten tabla. `Insert`/`Update` son `never`: solo escriben las RPC
+       * `request_friendship` y `respond_friendship` (0052 revoca los dos).
+       * Borrar sí está permitido — dejar de ser amigos borra de verdad.
+       */
+      friend_edges: {
+        Row: {
+          id: string;
+          requester_id: string;
+          addressee_id: string;
+          status: Database['public']['Enums']['friend_edge_status'];
+          created_at: string;
+          responded_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      /**
+       * 013. Un LIBRO, no un contador: no existe `profiles.points` que alguien
+       * pueda ajustar. Append-only (Art. 8.1) — `never` en las tres escrituras
+       * no es pereza, es la regla. Lo escribe el trigger de `checkins`.
+       */
+      /**
+       * 012 · Art. 11. Hasta 4, atado a evento, todo o nada. El grupo NO es un
+       * mecanismo de compra: decide quién entra y le pasa la lista a
+       * `reserve_order`, que es quien hace el todo-o-nada de verdad.
+       */
+      purchase_groups: {
+        Row: {
+          id: string;
+          event_id: string;
+          creator_id: string;
+          status: Database['public']['Enums']['purchase_group_status'];
+          order_id: string | null;
+          created_at: string;
+          locked_at: string | null;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      /**
+       * `slot` es el árbitro del «hasta 4»: la RPC lo asigna bajo candado y el
+       * índice único tumba al segundo si dos calculan el mismo.
+       * `order_item_id` es lo que hace que el ticket nazca con su dueño.
+       */
+      group_members: {
+        Row: {
+          group_id: string;
+          user_id: string;
+          event_id: string;
+          slot: number;
+          order_item_id: string | null;
+          joined_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      point_ledger: {
+        Row: {
+          id: string;
+          user_id: string;
+          kind: Database['public']['Enums']['point_reason'];
+          points: number;
+          event_id: string | null;
+          checkin_id: string | null;
+          created_at: string;
+        };
+        Insert: never;
+        Update: never;
+        Relationships: [];
+      };
+      /**
+       * 011. La mitad «quiere ir» de la señal. La otra mitad se deduce de
+       * `tickets`. Sin `status`: quitar el interés borra la fila, así que no se
+       * guarda a qué eventos dijo alguien que no.
+       */
+      event_interests: {
+        Row: {
+          user_id: string;
+          event_id: string;
+          created_at: string;
+        };
+        Insert: {
+          user_id?: string;
+          event_id: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
+      /** 010. Solo su dueño lee sus filas: un bloqueo detectable no protege. */
+      blocks: {
+        Row: {
+          blocker_id: string;
+          blocked_id: string;
+          created_at: string;
+        };
+        Insert: {
+          blocker_id?: string;
+          blocked_id: string;
+          created_at?: string;
+        };
+        Update: never;
+        Relationships: [];
+      };
     };
     Views: {
       /** Catálogo público. La única vista listable por `anon`. */
@@ -957,6 +1066,52 @@ export type Database = {
         };
         Relationships: [];
       };
+      /**
+       * 010. Definer (0054), como `v_my_tickets`: `profiles` solo lo lee su
+       * dueño. Emite `full_name` y `avatar_url` de un amigo aceptado, y nada
+       * más — nunca `ninja_mode`, que si llegara al front rompería la función.
+       */
+      v_my_friends: {
+        Row: {
+          edge_id: string | null;
+          friend_id: string | null;
+          full_name: string | null;
+          avatar_url: string | null;
+          since: string | null;
+        };
+        Relationships: [];
+      };
+      /** 013. Una fila, una columna: el saldo. `coalesce` a 0, nunca null. */
+      v_my_points: {
+        Row: {
+          total: number | null;
+        };
+        Relationships: [];
+      };
+      /**
+       * 011. Definer, y por eso el `where` de la vista es la única frontera.
+       * Emite **solo conteos** (D-40): nunca zona, precio, cantidad, id de
+       * orden ni quién. Un evento sin ningún amigo no sale — cero no es un
+       * valor que enseñar.
+       */
+      v_my_event_signals: {
+        Row: {
+          event_id: string | null;
+          friends_going: number | null;
+          friends_interested: number | null;
+        };
+        Relationships: [];
+      };
+      v_my_friend_requests: {
+        Row: {
+          edge_id: string | null;
+          requester_id: string | null;
+          full_name: string | null;
+          avatar_url: string | null;
+          created_at: string | null;
+        };
+        Relationships: [];
+      };
     };
     Functions: {
       /**
@@ -1042,6 +1197,21 @@ export type Database = {
       pause_event: { Args: { p_event_id: string; p_note?: string }; Returns: undefined };
       resume_event: { Args: { p_event_id: string; p_note?: string }; Returns: undefined };
       cancel_event: { Args: { p_event_id: string; p_note: string }; Returns: undefined };
+      /**
+       * 010. Los CUATRO casos de fallo devuelven el mismo error, y el front
+       * enseña ese mismo texto también en el éxito: distinguirlos convertiría
+       * el formulario en un oráculo de «¿está esta persona registrada?».
+       */
+      /** 012 · Art. 11. Devuelve el id del grupo; el creador entra como slot 1. */
+      create_purchase_group: { Args: { p_event_id: string }; Returns: string };
+      /** Solo el creador, y solo a un amigo: `private.are_friends` lo comprueba. */
+      add_group_member: { Args: { p_group_id: string; p_user_id: string }; Returns: undefined };
+      leave_purchase_group: { Args: { p_group_id: string }; Returns: undefined };
+      /** Exige tantos ítems como miembros: el todo-o-nada, en una comparación. */
+      lock_purchase_group: { Args: { p_group_id: string; p_order_id: string }; Returns: undefined };
+      request_friendship: { Args: { target_email: string }; Returns: undefined };
+      respond_friendship: { Args: { edge_id: string; accept: boolean }; Returns: undefined };
+      block_user: { Args: { target_id: string }; Returns: undefined };
       set_event_featured: {
         Args: { p_event_id: string; p_featured: boolean };
         Returns: undefined;
@@ -1106,6 +1276,15 @@ export type Database = {
       support_status:
         | 'open' | 'waiting_user' | 'in_progress' | 'escalated' | 'resolved' | 'closed';
       support_priority: 'low' | 'normal' | 'high' | 'urgent';
+      /** 013. Solo `checkin` por ahora. D-45: por asistir, no por comprar. */
+      point_reason: 'checkin';
+      /**
+       * 010. Dos valores, no tres. «Rechazada» NO es un estado: es la ausencia
+       * de la fila. Guardar rechazos deja a quien pide saber que lo rechazaron.
+       */
+      /** 012. `cancelled` es un estado, no un borrado: el grupo deja rastro. */
+      purchase_group_status: 'open' | 'locked' | 'completed' | 'cancelled';
+      friend_edge_status: 'pending' | 'accepted';
       /** Los cuatro del mockup. No hay un quinto, y el enum lo garantiza. */
       checkin_result: 'allowed' | 'manual_review' | 'already_used' | 'denied';
       checkin_reason:

@@ -27,12 +27,31 @@ Estado: `abierta` · `cerrada (fecha)` · `diferida a Fase N`
 | D-11 | ¿Existe centro de notificaciones? | No. Las alertas viven en el inicio de cada mundo. | 005, 008 | abierta |
 | D-12 | ¿Se diferencian «reembolso», «reclamo» y «disputa bancaria»? | Sí, ya está en `support_kind`. Falta el **proceso** de cada uno. Regla firme: no se abren dos vías de recuperación por el mismo pago. | 009 | abierta |
 
+## Bloquean Fase 1.5 — capa social
+
+Abiertas por el **acta del 4 de septiembre de 2026**. Las cinco primeras son,
+literalmente, los «puntos a validar» del §12 del acta, con un default seguro cada
+una para que el trabajo no se detenga esperando la respuesta.
+
+| # | Pregunta | Default vigente | Afecta | Estado |
+|---|---|---|---|---|
+| D-37 | ¿Qué funciones sociales son reales y cuáles quedan solo representadas visualmente? (acta §12.1) | **Ninguna es visual.** Lo no confirmado no aparece en la UI ni en el copy (Art. 12.5, roadmap). Se construye poco y de verdad. Un botón muerto delante de un inversor cuesta más que una función que falta. | 010–013 | abierta |
+| D-38 | ¿Qué nivel de conexión con contactos externos se muestra? (acta §12.2) | **Ninguno.** Sin agenda del teléfono, sin Google Contacts, sin Instagram. Se busca por correo exacto o por código de usuario. Importar la agenda es tratamiento de datos de terceros que no consintieron. | 010 | abierta |
+| D-39 | ¿La amistad es mutua o asimétrica (seguir)? | **Mutua con aceptación.** El acta §7 dice «solicitudes de amistad». Simétrica es también lo único que hace la señal social defendible: nadie aparece en el conteo de un desconocido. | 010, 011 | abierta |
+| D-40 | ¿Qué revela exactamente una señal social? | **El hecho, nunca el detalle.** «Ana ya tiene entrada». Nunca la zona, el precio, cuántas entradas ni el número de orden. La señal es un booleano, no una ventana a la compra. | 011 | abierta |
+| D-41 | ¿Hay umbral mínimo de amigos antes de mostrar un conteo? | **No: se muestra desde 1.** Manda el mockup («1 amigo ya tiene entrada»). Riesgo aceptado y anotado: con un solo amigo el conteo revela exactamente quién compró. Es tolerable **solo** porque la amistad es mutua, consentida y revocable, y porque D-40 limita lo revelado al hecho. | 011 | abierta |
+| D-42 | ¿Cómo se presentan las comunidades sin volverse una red social? (acta §12.3) | **Seguir a un organizador o a una etiqueta**, no grupos con muro propio. Alimenta el descubrimiento sin abrir moderación de contenido, reportes ni bloqueo de publicaciones. Fase 3. | Fase 3 | abierta |
+| D-43 | ¿Cómo se explica el modo ninja en una frase? (acta §12.4) | Un interruptor en el perfil: **«Nadie ve a qué eventos vas. Tú sigues viendo a tus amigos.»** Ocultarse no es cegarse. Asimétrico a propósito: castigar la privacidad con menos producto empuja a desactivarla. | 010 | abierta |
+| D-44 | ¿Qué relación tienen puntos, Wallet y FanPass en esta versión? (acta §12.5) | Los puntos **se acumulan y se muestran; no se canjean por nada**. Sin catálogo de premios, sin vencimiento, sin conversión a dinero. FanPass sigue siendo un chip que solo aparece si existe la membresía (D-29). | 013 | abierta |
+| D-45 | ¿Los puntos se otorgan por compra o por asistencia real? | **Por asistencia real**, en el `checkin` permitido. Es lo que dice el mockup («+50 puntos por check-in») y lo que no se puede farmear comprando y devolviendo. | 013 | abierta |
+
 ## Bloquean Fase 2
 
 | # | Pregunta | Default vigente | Estado |
 |---|---|---|---|
 | D-20 | ¿Orden de publicaciones, límites de precio y retención al vendedor en reventa? | Cola FIFO, precio ≤ original, retención 24 h post-evento (Art. 6). | diferida a Fase 2 |
 | D-21 | ¿El grupo de evento nace automáticamente de una compra grupal? | No: se crea a mano. | diferida a Fase 3 |
+| D-23b | ¿Qué ve un miembro de un **grupo de compra** si alguien usa modo ninja? | Su presencia en el grupo sí (unirse es un acto explícito); su actividad social fuera del grupo no. Ver **D-23**. | movida a Fase 1.5 (012) |
 | D-22 | ¿Se puede crear grupo de evento sin comprar juntos? | Sí. | diferida a Fase 3 |
 | D-23 | ¿Qué ve un miembro del grupo si alguien usa modo ninja? | Nada de su actividad social; sí su presencia en el grupo, que es un acto explícito. | diferida a Fase 3 |
 | D-24 | ¿Cómo se elige o cambia el coordinador del grupo? | Lo es quien lo creó; sin transferencia. | diferida a Fase 3 |

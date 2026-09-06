@@ -59,6 +59,23 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () => import('./features/soporte/mis-casos.page').then((m) => m.MisCasosPage),
       },
+      // 010: el grafo social. `/perfil` nace aquí con lo justo — el modo ninja
+      // tiene que existir ANTES de la primera señal social (011).
+      {
+        path: 'amigos',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/social/amigos.page').then((m) => m.AmigosPage),
+      },
+      {
+        path: 'grupos',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/social/grupos.page').then((m) => m.GruposPage),
+      },
+      {
+        path: 'perfil',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/social/perfil.page').then((m) => m.PerfilPage),
+      },
     ],
   },
 
