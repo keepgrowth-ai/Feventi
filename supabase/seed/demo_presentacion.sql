@@ -189,32 +189,66 @@ update public.profiles set dni_last4 = '8412', dni_verified_at = now()
 
 -- ── Que la ventana de turno no caduque ──────────────────────────────────────
 --
--- Cada día a las 05:00 UTC (medianoche en Lima) el evento vuelve a colocarse con
--- las puertas recién abiertas. Sin esto la demo funciona hoy y falla mañana, que
--- es exactamente la clase de fallo que aparece en el peor momento.
+-- Cada día a las 05:00 UTC (medianoche en Lima) la demo vuelve a colocarse con
+-- las puertas recién abiertas. Sin esto funciona hoy y falla mañana, que es
+-- exactamente la clase de fallo que aparece en el peor momento.
 --
--- Se mueve solo la fecha y solo de ESTE evento. `guard_sensitive_event_fields`
--- impediría el cambio si lo intentara el organizador; aquí corre como el dueño
--- de la base, que es quien ejecuta los trabajos de cron.
+-- DOS COSAS QUE ESTE TRABAJO HACÍA MAL Y COSTARON UNA DEMO ROTA
+--
+-- 1. **Corría sin sesión.** `guard_sensitive_event_fields` bloquea mover la
+--    fecha de un evento con entradas emitidas (Art. 4.4) — y su primera línea
+--    dice «Admin sí puede». Sin JWT, `auth_is_admin()` daba falso y el update
+--    moría con 42501 todas las noches, en silencio. El evento se quedó atrás y
+--    la ventana de puerta llevaba un día cerrada.
+--
+-- 2. **Movía el evento pero no sus FASES.** La Preventa caducaba y el Palco VIP
+--    se quedaba sin ningún tier a la venta. El catálogo seguía viéndose bien
+--    —por eso no se notaba— pero comprar en VIP era imposible y el precio bueno
+--    había desaparecido.
+--
+-- Y el orden importa: `price_phases_no_overlap` es una exclusion constraint, así
+-- que la fase tardía se adelanta PRIMERO. Al revés, la Preventa se solaparía con
+-- la Última hora, que todavía está en su sitio viejo.
 select cron.unschedule('demo-recolocar-evento')
  where exists (select 1 from cron.job where jobname='demo-recolocar-evento');
 
 select cron.schedule(
   'demo-recolocar-evento',
   '0 5 * * *',
-  $$
-    update public.events
-       set starts_at = now() + interval '5 hours',
-           doors_at  = now() - interval '1 hour'
-     where id = 'de000000-0000-4000-8000-00000000b001';
+  $job$
+    do $$
+    begin
+      perform set_config('request.jwt.claims',
+        '{"sub":"dede0000-0000-4000-8000-000000000001","role":"authenticated"}', true);
 
-    -- Y devuelve las entradas usadas en la demo anterior a su estado inicial,
-    -- para que la puerta vuelva a decir ACCESO PERMITIDO.
-    update public.tickets set status = 'active', used_at = null
-     where event_id = 'de000000-0000-4000-8000-00000000b001' and status = 'used';
+      update public.events
+         set starts_at = now() + interval '5 hours',
+             doors_at  = now() - interval '1 hour'
+       where id = 'de000000-0000-4000-8000-00000000b001';
 
-    delete from public.checkins where event_id = 'de000000-0000-4000-8000-00000000b001';
-  $$
+      update public.price_phases
+         set starts_at = now() + interval '3 hours',
+             ends_at   = now() + interval '30 days'
+       where event_id = 'de000000-0000-4000-8000-00000000b001' and sort_order = 1;
+
+      update public.price_phases
+         set starts_at = now() - interval '20 days',
+             ends_at   = now() + interval '3 hours'
+       where event_id = 'de000000-0000-4000-8000-00000000b001' and sort_order = 0;
+
+      perform set_config('request.jwt.claims', '', true);
+
+      -- Devuelve las entradas usadas en la demo anterior a su estado inicial,
+      -- para que la puerta vuelva a decir ACCESO PERMITIDO. Los checkins se
+      -- borran con los triggers puestos: `point_ledger.checkin_id` tiene un
+      -- `on delete set null` que tiene que propagarse (013).
+      delete from public.checkins where event_id = 'de000000-0000-4000-8000-00000000b001';
+
+      update public.tickets set status = 'active', used_at = null
+       where event_id = 'de000000-0000-4000-8000-00000000b001' and status = 'used';
+    end
+    $$;
+  $job$
 );
 
 -- ── Comprobación ────────────────────────────────────────────────────────────
@@ -224,4 +258,10 @@ select
      from public.events where id='de000000-0000-4000-8000-00000000b001') as puerta_abierta,
   (select count(*) from public.tickets where event_id='de000000-0000-4000-8000-00000000b001' and status='active') as entradas_de_camila,
   (select count(*) from public.event_staff where event_id='de000000-0000-4000-8000-00000000b001') as staff,
-  (select count(*) from cron.job where jobname='demo-recolocar-evento') as cron_activo;
+  (select count(*) from cron.job where jobname='demo-recolocar-evento') as cron_activo,
+  -- Que las DOS zonas tengan tier a la venta: el fallo silencioso era que el
+  -- Palco VIP se quedaba sin ninguno y nadie lo miraba.
+  (select count(*) from public.price_tiers t
+     join public.price_phases p on p.id = t.phase_id
+    where t.event_id = 'de000000-0000-4000-8000-00000000b001'
+      and now() between p.starts_at and p.ends_at)                as tiers_a_la_venta;
