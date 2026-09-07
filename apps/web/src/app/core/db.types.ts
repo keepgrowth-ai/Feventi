@@ -1099,6 +1099,9 @@ export type Database = {
           event_id: string | null;
           friends_going: number | null;
           friends_interested: number | null;
+          /** Hasta dos nombres de PILA. El resto lo cuenta el número (D-46). */
+          going_names: string[] | null;
+          interested_names: string[] | null;
         };
         Relationships: [];
       };

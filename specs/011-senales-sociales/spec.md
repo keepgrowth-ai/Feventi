@@ -22,8 +22,11 @@ amigos van y cuántos quieren ir**, y que el fan pueda declarar su propio inter�
 
 ## No objetivos
 
-- **Nombres.** El mockup muestra conteos —«2 amigos quieren ir»— y el mockup
-  manda. Una lista de nombres es otra decisión de privacidad, y no está tomada.
+- ~~**Nombres.**~~ **Corregido: la señal SÍ dice quiénes** (D-46, migración
+  `0062`). Este no-objetivo se escribió apoyándose en que el mockup enseña
+  conteos, y el mockup manda. Pero el mockup se dibujó antes del acta, y el acta
+  pide que la app *se sienta* como una red social (§4, §6). Se muestran hasta
+  **dos nombres de pila** y el resto como «y N más».
 - Comunidades y señales de gente que no es amiga: **D-42**, Fase 3.
 - Recomendaciones o ranking por actividad social: sin grafo poblado no hay señal
   que rankear, y un algoritmo mal calibrado es una fuga de datos con apariencia
@@ -46,7 +49,7 @@ se define por lo que NO dice:
 | el número de amigos | el precio pagado |
 | | cuántas entradas compró |
 | | el número de orden o de ticket |
-| | quién es (esta versión no da nombres) |
+| **quiénes**, hasta dos nombres de pila (D-46) | el apellido |
 
 Y tres condiciones que no se negocian:
 

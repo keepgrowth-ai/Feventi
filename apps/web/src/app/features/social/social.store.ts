@@ -21,6 +21,9 @@ export interface EventSignal {
   readonly event_id: string;
   readonly friends_going: number;
   readonly friends_interested: number;
+  /** Hasta dos nombres de pila (D-46). Null si no llegan; la señal aguanta. */
+  readonly going_names: readonly string[] | null;
+  readonly interested_names: readonly string[] | null;
 }
 
 export interface BlockedUser {

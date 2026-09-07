@@ -201,6 +201,8 @@ import {
                 <fv-social-signal
                   [going]="sn.friends_going"
                   [interested]="sn.friends_interested"
+                  [goingNames]="sn.going_names"
+                  [interestedNames]="sn.interested_names"
                 />
               </div>
             }

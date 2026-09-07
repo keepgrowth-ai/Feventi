@@ -92,6 +92,8 @@ import {
             <fv-social-signal
               [going]="senal()?.friends_going ?? 0"
               [interested]="senal()?.friends_interested ?? 0"
+              [goingNames]="senal()?.going_names ?? null"
+              [interestedNames]="senal()?.interested_names ?? null"
               [conNota]="true"
             />
           </div>
