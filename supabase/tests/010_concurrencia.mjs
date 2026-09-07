@@ -91,10 +91,24 @@ check(
   `van ${s?.friends_going} · quieren ${s?.friends_interested}`,
 );
 
+// Contar columnas era afirmar el diseño de ayer: al añadir los nombres (D-46)
+// esta comprobación falló sin que nada estuviera mal. Lo que importa no es
+// CUÁNTAS columnas hay, es cuáles NO puede haber.
+const PROHIBIDAS = [
+  'zone_id', 'zone_name', 'face_value_cents', 'price_cents', 'total_cents',
+  'order_id', 'order_item_id', 'ticket_id', 'code', 'owner_id', 'user_id',
+  'friend_id', 'dni_last4', 'email',
+];
 check(
-  'HTTP-05 la señal NO trae zona, precio ni quién (D-40)',
-  s && Object.keys(s).length === 3 && 'event_id' in s,
+  'HTTP-05 la señal no expone zona, precio, cantidad ni identificadores (D-40)',
+  s && !PROHIBIDAS.some((c) => c in s) && 'event_id' in s,
   `columnas: ${s ? Object.keys(s).join(', ') : '—'}`,
+);
+
+check(
+  'HTTP-05b y sí trae los nombres de pila que pide D-46',
+  Array.isArray(s?.going_names) && s.going_names[0] === 'Diego',
+  `van: ${JSON.stringify(s?.going_names)} · quieren: ${JSON.stringify(s?.interested_names)}`,
 );
 
 // Nadia tiene entrada de este evento y está en ninja. Si el conteo fuera 2, el
