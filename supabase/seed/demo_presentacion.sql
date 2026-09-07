@@ -187,34 +187,50 @@ on conflict (user_id) do nothing;
 update public.profiles set dni_last4 = '8412', dni_verified_at = now()
  where id = 'dede0000-0000-4000-8000-000000000002';
 
--- ── Que la ventana de turno no caduque ──────────────────────────────────────
+-- ── Que la demo no caduque ─────────────────────────────────────────────────
 --
--- Cada día a las 05:00 UTC (medianoche en Lima) la demo vuelve a colocarse con
--- las puertas recién abiertas. Sin esto funciona hoy y falla mañana, que es
--- exactamente la clase de fallo que aparece en el peor momento.
+-- LA CONTRADICCIÓN QUE HAY QUE ENTENDER ANTES DE TOCAR ESTO
 --
--- DOS COSAS QUE ESTE TRABAJO HACÍA MAL Y COSTARON UNA DEMO ROTA
+-- El evento de la demo tiene que cumplir DOS condiciones a la vez, y el tiempo
+-- las separa:
 --
--- 1. **Corría sin sesión.** `guard_sensitive_event_fields` bloquea mover la
---    fecha de un evento con entradas emitidas (Art. 4.4) — y su primera línea
---    dice «Admin sí puede». Sin JWT, `auth_is_admin()` daba falso y el update
---    moría con 42501 todas las noches, en silencio. El evento se quedó atrás y
---    la ventana de puerta llevaba un día cerrada.
+--   · la puerta abre entre `doors_at - 2h` y `starts_at + 4h`;
+--   · el catálogo solo lista eventos con `starts_at > now()` — la vista 0024, y
+--     hace bien: un catálogo que enseña conciertos de anoche está roto.
 --
--- 2. **Movía el evento pero no sus FASES.** La Preventa caducaba y el Palco VIP
---    se quedaba sin ningún tier a la venta. El catálogo seguía viéndose bien
---    —por eso no se notaba— pero comprar en VIP era imposible y el precio bueno
---    había desaparecido.
+-- Con `starts_at = now() + 5h`, las dos se cumplen **solo cinco horas**. Pasadas
+-- esas, la puerta sigue abierta y el evento **desaparece del catálogo**. Se vio
+-- en pantalla: quedaban dos eventos y faltaba justo el de la demo.
 --
--- Y el orden importa: `price_phases_no_overlap` es una exclusion constraint, así
--- que la fase tardía se adelanta PRIMERO. Al revés, la Preventa se solaparía con
--- la Última hora, que todavía está en su sitio viejo.
+-- Por eso se recoloca CADA HORA, no una vez al día: así `starts_at` nunca baja
+-- de +4h y las dos condiciones se cumplen siempre.
+--
+-- Y por eso son DOS trabajos:
+--
+--   1. `demo-recolocar-evento` — cada hora, mueve fechas y fases. No toca nada
+--      más.
+--   2. `demo-resetear-entradas` — una vez al día, devuelve las entradas usadas.
+--      Separado a propósito: un reseteo a mitad de una demostración convertiría
+--      el «YA UTILIZADO» del segundo escaneo en un «ACCESO PERMITIDO», delante
+--      del público.
+--
+-- Dos detalles más que costaron una corrida cada uno:
+--
+--   · El trabajo se identifica como la cuenta de operaciones porque
+--     `guard_sensitive_event_fields` bloquea mover la fecha de un evento con
+--     entradas emitidas (Art. 4.4). Su primera línea dice «Admin sí puede», y
+--     eso es lo que se usa. Sin JWT, `auth_is_admin()` da falso y el update
+--     muere con 42501 — en silencio, cada noche.
+--   · Las fases se mueven de atrás hacia adelante. `price_phases_no_overlap` es
+--     una exclusion constraint: adelantar primero la Preventa la haría
+--     solaparse con la Última hora, que todavía está en su sitio viejo.
+
 select cron.unschedule('demo-recolocar-evento')
  where exists (select 1 from cron.job where jobname='demo-recolocar-evento');
 
 select cron.schedule(
   'demo-recolocar-evento',
-  '0 5 * * *',
+  '7 * * * *',
   $job$
     do $$
     begin
@@ -237,13 +253,23 @@ select cron.schedule(
        where event_id = 'de000000-0000-4000-8000-00000000b001' and sort_order = 0;
 
       perform set_config('request.jwt.claims', '', true);
+    end
+    $$;
+  $job$
+);
 
-      -- Devuelve las entradas usadas en la demo anterior a su estado inicial,
-      -- para que la puerta vuelva a decir ACCESO PERMITIDO. Los checkins se
-      -- borran con los triggers puestos: `point_ledger.checkin_id` tiene un
+select cron.unschedule('demo-resetear-entradas')
+ where exists (select 1 from cron.job where jobname='demo-resetear-entradas');
+
+select cron.schedule(
+  'demo-resetear-entradas',
+  '0 5 * * *',
+  $job$
+    do $$
+    begin
+      -- Con los triggers puestos: `point_ledger.checkin_id` tiene un
       -- `on delete set null` que tiene que propagarse (013).
       delete from public.checkins where event_id = 'de000000-0000-4000-8000-00000000b001';
-
       update public.tickets set status = 'active', used_at = null
        where event_id = 'de000000-0000-4000-8000-00000000b001' and status = 'used';
     end
@@ -258,7 +284,12 @@ select
      from public.events where id='de000000-0000-4000-8000-00000000b001') as puerta_abierta,
   (select count(*) from public.tickets where event_id='de000000-0000-4000-8000-00000000b001' and status='active') as entradas_de_camila,
   (select count(*) from public.event_staff where event_id='de000000-0000-4000-8000-00000000b001') as staff,
-  (select count(*) from cron.job where jobname='demo-recolocar-evento') as cron_activo,
+  (select count(*) from cron.job
+    where jobname in ('demo-recolocar-evento','demo-resetear-entradas')) as cron_activos,
+  -- La condición que se rompió: el evento tiene que SALIR en el catálogo, no
+  -- solo existir. Mirar `events` no basta — hay que mirar la vista pública.
+  (select count(*) from public.v_event_public
+    where slug = 'zona-ritmo-verano')                                    as sale_en_catalogo,
   -- Que las DOS zonas tengan tier a la venta: el fallo silencioso era que el
   -- Palco VIP se quedaba sin ninguno y nadie lo miraba.
   (select count(*) from public.price_tiers t
