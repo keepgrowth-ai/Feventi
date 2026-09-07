@@ -165,6 +165,27 @@ de ir — y esa persona ya no ve el grupo. El conteo se hace desde quien se qued
 **`\gset` es de psql y aquí no existe.** Para pasar un id de un statement al
 siguiente se usa una tabla temporal, no una variable del cliente.
 
+## Lo que encontró la primera persona que lo usó de verdad
+
+**El QR se queda congelado cuando la pestaña pierde el foco.** Chrome frena los
+`setInterval` de una pestaña en segundo plano a uno por minuto; un portátil
+bloqueado los para del todo. La cuenta atrás de la wallet restaba uno por tick,
+así que creía que quedaban 28 segundos cuando habían pasado tres minutos — y
+enseñaba un QR caducado como si estuviera fresco.
+
+En puerta eso sale como **`denied` / `screenshot_suspected`, `slot_delta = -6`**.
+El validador tenía razón: un código de hace tres minutos ES sospechoso. El fallo
+estaba en la wallet.
+
+Es exactamente el caso de una demostración —abres el QR en el portátil, coges el
+móvil para escanear— y ninguna prueba lo veía, porque **el tiempo del navegador
+no se puede simular desde SQL ni desde `curl`**. La bitácora de `checkins` sí lo
+guardaba: tres escaneos donde debería haber dos, y el primero denegado.
+
+> Una cuenta atrás que resta ticks está midiendo cuántas veces se ejecutó el
+> temporizador, no cuánto tiempo pasó. Son la misma cosa solo mientras el
+> navegador coopera. Se calcula contra el reloj.
+
 ## Lo que ninguna de estas suites puede encontrar
 
 Se descubrió abriendo la aplicación en un navegador, después de que las 229

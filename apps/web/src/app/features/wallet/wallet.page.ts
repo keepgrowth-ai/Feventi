@@ -246,6 +246,21 @@ export class WalletPage implements OnDestroy {
   protected readonly left = signal(0);
 
   private timer?: ReturnType<typeof setInterval>;
+
+  /**
+   * Momento real en que vence el token, en milisegundos de reloj.
+   *
+   * La cuenta atrás NO puede ser «restar uno por cada tick». Chrome frena los
+   * temporizadores de una pestaña en segundo plano a uno por minuto, y un
+   * portátil que se bloquea los para del todo. Con el modelo de restar, el
+   * contador cree que quedan 28 segundos cuando han pasado tres minutos — y el
+   * QR en pantalla es de hace tres minutos.
+   *
+   * Eso no es un detalle cosmético: el validador rechaza un token de hace tres
+   * minutos por `screenshot_suspected`, que es exactamente lo que tiene que
+   * hacer. El fallo estaba aquí, no allí.
+   */
+  private venceEn = 0;
   /** Hay una petición de token en vuelo. Evita que se solapen. */
   private pidiendo = false;
 
@@ -278,10 +293,27 @@ export class WalletPage implements OnDestroy {
       await this.load();
       this.timer = setInterval(() => this.tick(), 1000);
     });
+
+    // Volver a la pestaña refresca YA, sin esperar al siguiente tick — que con
+    // el navegador frenado puede tardar un minuto en llegar.
+    //
+    // Es el caso de la demostración, literalmente: se abre el QR en el
+    // portátil, se coge el móvil para escanear, y al mirar la pantalla otra vez
+    // el código lleva rato parado. Sin esto, el primer escaneo dice DENEGADO
+    // por sospecha de captura — y el sistema tendría razón.
+    document.addEventListener('visibilitychange', this.alVolver);
   }
+
+  private readonly alVolver = (): void => {
+    if (document.visibilityState !== 'visible') return;
+    if (Date.now() < this.venceEn) return;
+    const t = this.proxima();
+    if (t?.qr_state === 'available') void this.refresh(t.id);
+  };
 
   ngOnDestroy(): void {
     clearInterval(this.timer);
+    document.removeEventListener('visibilitychange', this.alVolver);
   }
 
   private async load(): Promise<void> {
@@ -307,6 +339,7 @@ export class WalletPage implements OnDestroy {
         // Sin esto, `left` se queda en 0 y el tick reintenta CADA SEGUNDO: un
         // fallo persistente se convierte en una tormenta de peticiones. Con 5 s
         // el reintento existe pero no castiga a un servidor que ya va mal.
+        this.venceEn = Date.now() + 5000;
         this.left.set(5);
         return;
       }
@@ -320,19 +353,26 @@ export class WalletPage implements OnDestroy {
       // la petición el siguiente refresco entra antes de que el anterior acabe
       // de pintarse. Perder un segundo de vigencia no le importa a nadie;
       // encadenar peticiones, sí.
-      this.left.set(Math.max(data?.expires_in ?? 0, 2));
+      const segundos = Math.max(data?.expires_in ?? 0, 2);
+      this.venceEn = Date.now() + segundos * 1000;
+      this.left.set(segundos);
     } finally {
       this.pidiendo = false;
     }
   }
 
+  /**
+   * Se calcula contra el reloj, no restando. Si el navegador frenó el
+   * temporizador —pestaña en segundo plano, portátil bloqueado— el primer tick
+   * al volver ve que ya venció y pide token nuevo, en vez de seguir enseñando
+   * uno caducado como si estuviera fresco.
+   */
   private tick(): void {
-    const quedan = this.left() - 1;
+    const quedan = Math.ceil((this.venceEn - Date.now()) / 1000);
     if (quedan > 0) {
       this.left.set(quedan);
       return;
     }
-    // Se acabó el slot: pedir el siguiente token.
     const t = this.proxima();
     if (t?.qr_state === 'available') void this.refresh(t.id);
     else this.left.set(0);
