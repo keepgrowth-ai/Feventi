@@ -56,6 +56,12 @@ RUN npm install -g npm@11 \
  && npm install --no-audit --no-fund
 
 COPY apps/web apps/web
+# La comprobación de backticks corre ANTES de compilar, así que su script tiene
+# que estar en la imagen. Sin esta línea, `build:prod` falla aquí con un
+# «Cannot find module» y el despliegue se cae por el guardarraíl en vez de por
+# el fallo que el guardarraíl busca.
+COPY scripts scripts
+
 # `build:prod` es un SCRIPT, no `build -- --configuration production`. Pasar el
 # flag a través de un workspace lo convierte en `ng build production`, que ng
 # interpreta como nombre de proyecto y falla. Lo destapó escribir este

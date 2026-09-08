@@ -3,6 +3,7 @@ import { Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth.store';
 import { soles } from '../../shared/ui/money';
 import { PublicEventStore, type PublicEvent } from '../publico/public-event.store';
+import { Avatar } from '../../shared/ui/avatar';
 import { GruposStore, type GroupMember, type PurchaseGroup } from './grupos.store';
 import { SocialStore, type Friend } from './social.store';
 
@@ -26,7 +27,7 @@ interface Fila {
 @Component({
   selector: 'fv-grupos',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink],
+  imports: [RouterLink, Avatar],
   template: `
     <header class="mb-5">
       <h1 class="text-2xl font-black tracking-[-0.5px]">Comprar con amigos</h1>
@@ -66,8 +67,9 @@ interface Fila {
         <ul class="mt-3 flex flex-wrap gap-2">
           @for (m of f.miembros; track m.user_id) {
             <li
-              class="flex items-center gap-2 rounded-[--radius-chip] bg-raised px-3 py-1.5 text-[12.5px]"
+              class="flex items-center gap-2 rounded-[--radius-pill] border border-border bg-surface py-1 pl-1 pr-3 text-[12.5px]"
             >
+              <fv-avatar class="size-7 text-[11px]" [nombre]="nombre(m.user_id)" />
               <span class="font-semibold">{{ nombre(m.user_id) }}</span>
               @if (m.slot === 1) {
                 <span class="text-[10.5px] text-fg-muted">paga</span>

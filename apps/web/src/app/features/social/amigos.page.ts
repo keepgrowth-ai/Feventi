@@ -1,6 +1,7 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { Avatar } from '../../shared/ui/avatar';
 import { SocialStore, type Friend, type FriendRequest } from './social.store';
 
 /**
@@ -20,7 +21,7 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
 @Component({
   selector: 'fv-amigos',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink],
+  imports: [FormsModule, RouterLink, Avatar],
   template: `
     <header class="mb-5">
       <h1 class="text-2xl font-black tracking-[-0.5px]">Amigos</h1>
@@ -47,11 +48,7 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
               class="flex flex-wrap items-center justify-between gap-3 rounded-[--radius-card] border border-coral/40 bg-surface p-3"
             >
               <div class="flex min-w-0 items-center gap-3">
-                <span
-                  class="grid size-9 shrink-0 place-items-center rounded-full bg-violet/15 text-[13px] font-bold text-info-fg"
-                >
-                  {{ inicial(s.full_name) }}
-                </span>
+                <fv-avatar class="size-10 text-[14px]" [nombre]="s.full_name" [url]="s.avatar_url" />
                 <p class="truncate text-[14px] font-bold">{{ s.full_name ?? 'Alguien' }}</p>
               </div>
               <div class="flex shrink-0 gap-2">
@@ -87,11 +84,7 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
             class="flex flex-wrap items-center justify-between gap-3 rounded-[--radius-card] border border-border bg-surface p-3"
           >
             <div class="flex min-w-0 items-center gap-3">
-              <span
-                class="grid size-9 shrink-0 place-items-center rounded-full bg-turquoise/15 text-[13px] font-bold text-success-fg"
-              >
-                {{ inicial(a.full_name) }}
-              </span>
+              <fv-avatar class="size-10 text-[14px]" [nombre]="a.full_name" [url]="a.avatar_url" />
               <p class="truncate text-[14px] font-bold">{{ a.full_name ?? 'Sin nombre' }}</p>
             </div>
             <div class="flex shrink-0 gap-3 text-[12.5px]">

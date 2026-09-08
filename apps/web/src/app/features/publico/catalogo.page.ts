@@ -3,6 +3,7 @@ import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth.store';
 import { Chip } from '../../shared/ui/chip';
+import { EventVisual } from '../../shared/ui/event-visual';
 import { SocialSignal } from '../../shared/ui/social-signal';
 import { SocialStore, type EventSignal } from '../social/social.store';
 import { soles } from '../../shared/ui/money';
@@ -28,7 +29,7 @@ import {
 @Component({
   selector: 'fv-catalogo',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, RouterLink, Chip, SocialSignal],
+  imports: [FormsModule, RouterLink, Chip, SocialSignal, EventVisual],
   template: `
     <!-- Destacado -->
     @if (featured(); as f) {
@@ -175,10 +176,14 @@ import {
           [routerLink]="['/eventos', e.slug]"
           class="flex flex-col overflow-hidden rounded-[--radius-card] border border-border bg-surface"
         >
-          <!-- Sin imagen, uno de los seis gradientes: sigue siendo legible -->
-          <div class="relative aspect-[16/9]" [class]="grad(e)">
+          <!-- Si el organizador subió imagen, manda la suya. Si no —que es el
+               caso del 90 % de los eventos reales— el cartel se genera a partir
+               de la categoría. Ver «event-visual.ts». -->
+          <div class="relative aspect-[16/9] overflow-hidden">
             @if (e.hero_image_url) {
               <img [src]="e.hero_image_url" [alt]="e.title" class="size-full object-cover" />
+            } @else {
+              <fv-event-visual [seed]="e.id" [category]="e.category" />
             }
             @if (badge(e); as b) {
               <span class="absolute right-2.5 top-2.5">

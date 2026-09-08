@@ -7,11 +7,12 @@
   ],
   "scripts": {
     "dev": "npm --workspace apps/web run start",
-    "build": "npm --workspace apps/web run build",
-    "build:prod": "npm --workspace apps/web run build:prod",
+    "build": "npm run check:templates && npm --workspace apps/web run build",
+    "build:prod": "npm run check:templates && npm --workspace apps/web run build:prod",
     "test": "npm --workspace apps/web run test",
     "gen:types": "supabase gen types typescript --project-id orirleaujhpewiowaanq --schema public > apps/web/src/app/core/db.types.ts",
     "db:lint": "echo \"Correr mcp__supabase__get_advisors(security) y comparar con specs/advisor-baseline.md\"",
-    "test:rls": "echo \"Correr supabase/tests/*.sql con mcp__supabase__execute_sql. Ver specs/roadmap.md\""
+    "test:rls": "echo \"Correr supabase/tests/*.sql con mcp__supabase__execute_sql. Ver specs/roadmap.md\"",
+    "check:templates": "node scripts/no-backticks-en-templates.mjs"
   }
 }

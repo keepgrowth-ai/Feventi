@@ -2,6 +2,7 @@ import { Component, ChangeDetectionStrategy, computed, inject, input, signal } f
 import { Router, RouterLink } from '@angular/router';
 import { AuthStore } from '../../core/auth.store';
 import { Chip } from '../../shared/ui/chip';
+import { EventVisual } from '../../shared/ui/event-visual';
 import { SocialSignal } from '../../shared/ui/social-signal';
 import { GruposStore } from '../social/grupos.store';
 import { SocialStore, type EventSignal } from '../social/social.store';
@@ -32,15 +33,22 @@ import {
 @Component({
   selector: 'fv-evento-publico',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Chip, Seleccion, SocialSignal],
+  imports: [RouterLink, Chip, Seleccion, SocialSignal, EventVisual],
   template: `
     @if (ev(); as e) {
       <!-- Key visual -->
       <section
         class="relative overflow-hidden rounded-[--radius-card] bg-navy p-7 text-white sm:p-8"
-        [class]="e.hero_image_url ? '' : gradient()"
       >
+        @if (e.hero_image_url) {
+          <img [src]="e.hero_image_url" [alt]="" class="absolute inset-0 size-full object-cover" />
+        } @else {
+          <fv-event-visual [seed]="e.id" [category]="e.category" />
+        }
         <div class="fv-hero-texture absolute inset-0"></div>
+        <!-- La imagen no puede comerse el texto: el título va encima de todo y
+             tiene que leerse sobre cualquier foto que suba el organizador. -->
+        <div class="absolute inset-0 bg-gradient-to-t from-navy/85 via-navy/45 to-navy/20"></div>
         <div class="relative">
           @if (activePhase(); as ph) {
             <span

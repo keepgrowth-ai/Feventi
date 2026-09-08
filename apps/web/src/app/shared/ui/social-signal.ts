@@ -1,4 +1,5 @@
 import { Component, ChangeDetectionStrategy, computed, input } from '@angular/core';
+import { Avatar } from './avatar';
 
 /**
  * La señal social. Aparece en la tarjeta del catálogo y en la ficha del evento.
@@ -27,6 +28,7 @@ import { Component, ChangeDetectionStrategy, computed, input } from '@angular/co
 @Component({
   selector: 'fv-social-signal',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [Avatar],
   template: `
     @if (hay()) {
       <div class="fv-anim-llega flex items-center gap-2">
@@ -34,14 +36,12 @@ import { Component, ChangeDetectionStrategy, computed, input } from '@angular/co
           <!-- Se solapan a propósito: es la forma de decir «un grupo» sin
                escribirlo, y ocupa menos que ponerlos en fila. -->
           <span class="flex shrink-0 -space-x-1.5" aria-hidden="true">
-            @for (c of caras(); track c.inicial; let i = $index) {
-              <span
-                class="fv-anim-llega grid size-6 place-items-center rounded-full text-[10px] font-bold text-white ring-2 ring-surface"
-                [class]="c.grad"
+            @for (c of caras(); track c.nombre; let i = $index) {
+              <fv-avatar
+                class="fv-anim-llega size-6 text-[10px] ring-2 ring-surface"
+                [nombre]="c.nombre"
                 [style.animation-delay.ms]="80 + i * 70"
-              >
-                {{ c.inicial }}
-              </span>
+              />
             }
           </span>
         }
@@ -78,10 +78,7 @@ export class SocialSignal {
     const nombres = [...(this.goingNames() ?? []), ...(this.interestedNames() ?? [])]
       .filter(Boolean)
       .slice(0, 3);
-    return nombres.map((n) => ({
-      inicial: n.trim().charAt(0).toUpperCase(),
-      grad: 'fv-grad-' + this.indiceGradiente(n),
-    }));
+    return nombres.map((n) => ({ nombre: n }));
   });
 
   readonly linea = computed(() => {
@@ -118,12 +115,5 @@ export class SocialSignal {
     else quien = n.slice(0, -1).join(', ') + ' y ' + n[n.length - 1];
 
     return quien + ' ' + verbo;
-  }
-
-  /** Mismo nombre, mismo color, siempre. Sin esto los avatares parpadean. */
-  private indiceGradiente(nombre: string): number {
-    let h = 0;
-    for (const ch of nombre) h = (h * 31 + ch.charCodeAt(0)) % 6;
-    return h;
   }
 }
