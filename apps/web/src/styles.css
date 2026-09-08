@@ -132,6 +132,66 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* ── Que un control parezca un control ──────────────────────────────────────
+   Esto NO es decoración, y la distinción importa porque es fácil equivocarse
+   al revés: un efecto de hover sobre una tarjeta que solo se levanta y proyecta
+   sombra es adorno, pero la respuesta al puntero sobre un botón es AFFORDANCE
+   — es cómo un control dice que es un control. Sin ella, alguien duda de si
+   una cosa se puede pulsar, y esa duda cuesta más que cualquier animación.
+
+   Y había una causa concreta debajo: **Tailwind v4 cambió el preflight** y los
+   `<button>` pasaron de `cursor: pointer` a `cursor: default`. Sin esta regla,
+   el puntero sobre un botón es la flecha de un texto cualquiera. */
+@layer base {
+  :where(button, [role='button'], a[href], label[for], select, summary) {
+    cursor: pointer;
+  }
+  :where(button, [role='button'], input, select, textarea):disabled {
+    cursor: not-allowed;
+  }
+}
+
+@layer components {
+  /* La transición va en el elemento, no en el `:hover`: así el color también
+     vuelve suavemente al salir, en vez de cortarse en seco. */
+  :where(button, [role='button'], a[href]) {
+    transition:
+      background-color var(--dur-fast) var(--ease-arrival),
+      border-color var(--dur-fast) var(--ease-arrival),
+      color var(--dur-fast) var(--ease-arrival),
+      opacity var(--dur-fast) var(--ease-arrival),
+      transform var(--dur-fast) var(--ease-arrival);
+  }
+
+  /* Un velo translúcido por encima del fondo que ya tenga.
+     Se hace con `background-image` y no cambiando `background-color` porque
+     tiene que funcionar igual sobre el coral lleno, sobre un botón con solo
+     borde y sobre un enlace sin fondo — y no hay forma de escribir una regla
+     por cada uno sin repetir el sistema de color entero. El velo se apila
+     encima del color existente y respeta el texto. */
+  :where(button, [role='button'], a[href]):not(:disabled):hover {
+    background-image: linear-gradient(rgb(0 0 0 / 0.07) 0 0);
+  }
+
+  /* Sobre navy el negro no se ve: ahí el velo aclara. */
+  :where(.bg-navy, .fv-gate) :where(button, [role='button'], a[href]):not(:disabled):hover {
+    background-image: linear-gradient(rgb(255 255 255 / 0.12) 0 0);
+  }
+
+  /* Al pulsar, se hunde. Es movimiento que responde a una acción — la única
+     categoría que este producto se permite fuera de los dos momentos grandes. */
+  :where(button, [role='button']):not(:disabled):active {
+    transform: scale(0.97);
+    transition-duration: 60ms;
+  }
+
+  /* Un control desactivado no reacciona: si respondiera al puntero estaría
+     invitando a pulsar algo que no va a hacer nada. */
+  :where(button, [role='button']):disabled:hover {
+    background-image: none;
+  }
+}
+
 /* Foco visible en todo lo interactivo. No se quita sin poner otro. */
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--color-coral);
