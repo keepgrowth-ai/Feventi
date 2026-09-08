@@ -52,8 +52,23 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
       }
     </header>
 
+    @if (store.loading() && !tickets().length) {
+      <p class="fv-solo-lector" role="status" aria-live="polite">Cargando tus entradas…</p>
+      <div class="space-y-3" aria-hidden="true">
+        <div class="rounded-[--radius-card] border border-border bg-surface p-4">
+          <div class="fv-bone h-4 w-40"></div>
+          <div class="fv-bone mx-auto mt-4 size-56 rounded-[--radius-inner]"></div>
+          <div class="fv-bone mx-auto mt-3 h-3 w-48"></div>
+        </div>
+        <div class="rounded-[--radius-card] border border-border bg-surface p-4">
+          <div class="fv-bone h-4 w-52"></div>
+          <div class="fv-bone mt-2 h-3 w-32"></div>
+        </div>
+      </div>
+    }
+
     @if (store.error(); as e) {
-      <p class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2.5 text-[13px] text-danger-fg">
+      <p role="alert" class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2.5 text-[13px] text-danger-fg">
         {{ e }}
       </p>
     }

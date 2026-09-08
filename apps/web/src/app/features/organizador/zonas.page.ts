@@ -48,7 +48,7 @@ type ZoneWithSegments = Zone & { zone_segments: ZoneSegment[] };
     </header>
 
     @if (inv.error(); as e) {
-      <p class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2.5 text-[13px] text-danger-fg">
+      <p role="alert" class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2.5 text-[13px] text-danger-fg">
         {{ e }}
       </p>
     }

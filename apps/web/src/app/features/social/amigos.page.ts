@@ -31,7 +31,10 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
     </header>
 
     @if (store.error(); as e) {
-      <p class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[13px] text-danger-fg">
+      <p
+        role="alert"
+        class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[13px] text-danger-fg"
+      >
         {{ e }}
       </p>
     }
@@ -78,7 +81,20 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
       <h2 class="mb-2 text-[12px] font-bold text-fg-muted">
         Mis amigos
       </h2>
-      <ul class="space-y-2">
+
+      @if (cargando()) {
+        <p class="fv-solo-lector" role="status" aria-live="polite">Cargando tus amigos…</p>
+        <ul class="space-y-2" aria-hidden="true">
+          @for (n of [1, 2, 3]; track n) {
+            <li class="flex items-center gap-3 rounded-[--radius-card] border border-border bg-surface p-3">
+              <div class="fv-bone size-10 rounded-full"></div>
+              <div class="fv-bone h-4 w-32"></div>
+            </li>
+          }
+        </ul>
+      }
+
+      <ul class="space-y-2" [attr.aria-busy]="cargando()">
         @for (a of amigos(); track a.edge_id) {
           <li
             class="flex flex-wrap items-center justify-between gap-3 rounded-[--radius-card] border border-border bg-surface p-3"
@@ -101,12 +117,14 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
             </div>
           </li>
         } @empty {
-          <li class="rounded-[--radius-card] border border-dashed border-border p-5 text-center">
-            <p class="text-[13.5px] text-fg-muted">
-              Todavía no tienes amigos en Feventi. Cuando los tengas, verás a cuáles de
-              tus eventos van.
-            </p>
-          </li>
+          @if (!cargando()) {
+            <li class="rounded-[--radius-card] border border-dashed border-border p-5 text-center">
+              <p class="text-[13.5px] text-fg-muted">
+                Todavía no tienes amigos en Feventi. Cuando los tengas, verás a cuáles de
+                tus eventos van.
+              </p>
+            </li>
+          }
         }
       </ul>
     </section>
@@ -138,7 +156,11 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
       </form>
 
       @if (resultado(); as r) {
-        <p class="mt-2.5 rounded-[--radius-chip] bg-success-bg px-3 py-2 text-[12.5px] text-success-fg">
+        <p
+          role="status"
+          aria-live="polite"
+          class="mt-2.5 rounded-[--radius-chip] bg-success-bg px-3 py-2 text-[12.5px] text-success-fg"
+        >
           {{ r }}
         </p>
       }
@@ -164,6 +186,12 @@ export class AmigosPage {
   readonly amigos = signal<readonly Friend[]>([]);
   readonly solicitudes = signal<readonly FriendRequest[]>([]);
   readonly resultado = signal<string | null>(null);
+  /**
+   * Propio y no `store.loading()`: el store lo comparte con las otras pantallas
+   * sociales, así que pulsar «Enviar» lo pone a true y la lista de amigos se
+   * convertiría en esqueleto por una operación que no la afecta.
+   */
+  readonly cargando = signal(true);
   correo = '';
 
   constructor() {
@@ -174,6 +202,7 @@ export class AmigosPage {
     const [a, s] = await Promise.all([this.store.friends(), this.store.requests()]);
     this.amigos.set(a);
     this.solicitudes.set(s);
+    this.cargando.set(false);
   }
 
   async pedir(): Promise<void> {

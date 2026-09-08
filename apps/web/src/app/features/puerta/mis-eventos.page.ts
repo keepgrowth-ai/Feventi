@@ -26,7 +26,7 @@ import { GateStore, type GateEvent } from './gate.store';
       </p>
 
       @if (store.error(); as e) {
-        <p class="mt-4 rounded-[--radius-chip] bg-danger-fg px-3 py-3 text-base font-semibold text-white">
+        <p role="alert" class="mt-4 rounded-[--radius-chip] bg-danger-fg px-3 py-3 text-base font-semibold text-white">
           {{ e }}
         </p>
       }

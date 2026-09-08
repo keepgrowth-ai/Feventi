@@ -92,7 +92,7 @@ import { KINDS, SupportStore, type CaseContext, type SupportKind } from '../../f
           ></textarea>
 
           @if (store.error(); as e) {
-            <p class="mt-2 rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[12.5px] text-danger-fg">
+            <p role="alert" class="mt-2 rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[12.5px] text-danger-fg">
               {{ e }}
             </p>
           }

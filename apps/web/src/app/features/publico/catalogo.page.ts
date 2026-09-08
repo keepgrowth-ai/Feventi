@@ -163,14 +163,39 @@ import {
       </label>
     </form>
 
+    <!-- «alert» y no «status»: un error interrumpe lo que el lector esté
+         diciendo, porque quien no ve la pantalla necesita enterarse ahora y no
+         cuando acabe la frase en curso. -->
     @if (store.error(); as e) {
-      <p class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[13px] text-danger-fg">
+      <p
+        role="alert"
+        class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[13px] text-danger-fg"
+      >
         {{ e }}
       </p>
     }
 
+    <!-- Mientras carga, tarjetas fantasma con la MISMA forma. Antes aquí no
+         había nada: la pantalla se quedaba en blanco y el contenido aparecía de
+         golpe, que con una conexión lenta se lee como «está roto». -->
+    @if (store.loading() && !rows().length) {
+      <p class="fv-solo-lector" role="status" aria-live="polite">Cargando eventos…</p>
+      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" aria-hidden="true">
+        @for (n of [1, 2, 3, 4, 5, 6]; track n) {
+          <div class="overflow-hidden rounded-[--radius-card] border border-border bg-surface">
+            <div class="fv-bone aspect-[16/9] rounded-none"></div>
+            <div class="space-y-2 p-3.5">
+              <div class="fv-bone h-4 w-3/4"></div>
+              <div class="fv-bone h-3 w-1/2"></div>
+              <div class="fv-bone mt-4 h-5 w-24"></div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
     <!-- Cards -->
-    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" [attr.aria-busy]="store.loading()">
       @for (e of visibles(); track e.id) {
         <a
           [routerLink]="['/eventos', e.slug]"

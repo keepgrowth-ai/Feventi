@@ -255,6 +255,42 @@ body {
   }
 }
 
+/* ── El esqueleto de carga ──────────────────────────────────────────────────
+   Un «hueso» es un bloque gris con la FORMA de lo que va a llegar. Esa parte
+   es la que importa: un rectángulo genérico en medio de la pantalla informa
+   menos que nada, porque no dice qué se está cargando. Un hueso de 16:9 encima
+   de dos líneas cortas ya dice «viene una tarjeta de evento», y cuando llega la
+   de verdad no salta nada de sitio.
+
+   El latido es lento —1,6 s— a propósito: rápido parece una alarma, y esto no
+   avisa de nada, solo acompaña. */
+@layer components {
+  .fv-bone {
+    background: var(--color-muted);
+    border-radius: var(--radius-chip);
+    animation: fv-pulso-suave 1.6s ease-in-out infinite;
+  }
+  /* Escalonado: el ojo lee una lista que aparece, no un bloque que parpadea. */
+  .fv-bone:nth-child(2) { animation-delay: 120ms; }
+  .fv-bone:nth-child(3) { animation-delay: 240ms; }
+}
+
+/* ── Solo para lectores de pantalla ─────────────────────────────────────────
+   El esqueleto es decorativo y va con `aria-hidden`; lo que se anuncia es una
+   frase. Sin esto, quien no ve la pantalla no se entera de que hay algo en
+   camino y solo oye silencio hasta que el contenido aparece de golpe. */
+.fv-solo-lector {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
 /* Modo Puerta (Art. 10): nada por debajo de 16px, y el veredicto manda. */
 @layer components {
   .fv-gate {

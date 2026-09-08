@@ -58,7 +58,7 @@ import {
       </header>
 
       @if (store.error(); as err) {
-        <p class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2.5 text-[13px] text-danger-fg">
+        <p role="alert" class="mb-4 rounded-[--radius-chip] bg-danger-bg px-3 py-2.5 text-[13px] text-danger-fg">
           {{ err }}
         </p>
       }

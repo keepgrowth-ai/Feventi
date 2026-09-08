@@ -187,7 +187,7 @@ type Panel = 'scanner' | 'dni' | 'historial';
         }
 
         @if (store.error(); as err) {
-          <p class="mt-4 rounded-[--radius-chip] bg-danger-fg px-3 py-3 text-base font-semibold text-white">
+          <p role="alert" class="mt-4 rounded-[--radius-chip] bg-danger-fg px-3 py-3 text-base font-semibold text-white">
             {{ err }}
           </p>
         }

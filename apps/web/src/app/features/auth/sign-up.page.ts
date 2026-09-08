@@ -55,7 +55,7 @@ import { AuthStore } from '../../core/auth.store';
         </label>
 
         @if (error(); as e) {
-          <p class="rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[13px] text-danger-fg">
+          <p role="alert" class="rounded-[--radius-chip] bg-danger-bg px-3 py-2 text-[13px] text-danger-fg">
             {{ e }}
           </p>
         }
