@@ -44,6 +44,11 @@ export const routes: Routes = [
       { path: '', pathMatch: 'full', redirectTo: 'eventos' },
 
       {
+        path: 'creditos',
+        loadComponent: () =>
+          import('./features/publico/creditos.page').then((m) => m.CreditosPage),
+      },
+      {
         path: 'comprar/:id',
         canActivate: [authGuard],
         loadComponent: () =>

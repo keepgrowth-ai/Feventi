@@ -1,0 +1,37 @@
+[
+  {
+    "archivo": "img/eventos/zona-ritmo.jpg",
+    "titulo": "Crowd cheering concert",
+    "autor": "desconocido",
+    "licencia": "CC0 1.0",
+    "original": "https://www.rawpixel.com/image/3286381/free-photo-image-crowd-audience-blur-background"
+  },
+  {
+    "archivo": "img/eventos/kpop-fest.jpg",
+    "titulo": "Crowd Audience",
+    "autor": "donterase",
+    "licencia": "CC0 1.0",
+    "original": "https://stocksnap.io/photo/crowd-audience-FYXAZHCHGM"
+  },
+  {
+    "archivo": "img/eventos/stand-up.jpg",
+    "titulo": "People Men",
+    "autor": "Redd Angelo",
+    "licencia": "CC0 1.0",
+    "original": "https://stocksnap.io/photo/people-men-PJ3XCKIFKU"
+  },
+  {
+    "archivo": "img/eventos/cumbia.jpg",
+    "titulo": "<div class='fn'> David Bowie</div>",
+    "autor": "Roger Woolman",
+    "licencia": "BY 3.0",
+    "original": "https://commons.wikimedia.org/w/index.php?curid=74048708"
+  },
+  {
+    "archivo": "img/personas/*.jpg",
+    "titulo": "Retratos de marcador",
+    "autor": "randomuser.me",
+    "licencia": "Uso libre como datos de marcador",
+    "original": "https://randomuser.me/"
+  }
+]

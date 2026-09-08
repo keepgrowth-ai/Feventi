@@ -38,8 +38,9 @@ import { Avatar } from './avatar';
           <span class="flex shrink-0 -space-x-1.5" aria-hidden="true">
             @for (c of caras(); track c.nombre; let i = $index) {
               <fv-avatar
-                class="fv-anim-llega size-6 text-[10px] ring-2 ring-surface"
+                class="fv-anim-llega size-7 text-[10px] ring-2 ring-surface"
                 [nombre]="c.nombre"
+                [url]="c.foto"
                 [style.animation-delay.ms]="80 + i * 70"
               />
             }
@@ -64,6 +65,8 @@ export class SocialSignal {
   readonly interested = input(0);
   readonly goingNames = input<readonly string[] | null>(null);
   readonly interestedNames = input<readonly string[] | null>(null);
+  readonly goingAvatars = input<readonly (string | null)[] | null>(null);
+  readonly interestedAvatars = input<readonly (string | null)[] | null>(null);
 
   /** La nota de ninja ocupa una línea: en la tarjeta del catálogo no cabe. */
   readonly conNota = input(false);
@@ -75,10 +78,16 @@ export class SocialSignal {
    * caben tres caras que sean las de quien ya pagó.
    */
   readonly caras = computed(() => {
-    const nombres = [...(this.goingNames() ?? []), ...(this.interestedNames() ?? [])]
-      .filter(Boolean)
-      .slice(0, 3);
-    return nombres.map((n) => ({ nombre: n }));
+    // Nombre y foto vienen en arrays paralelos y en el mismo orden: la vista se
+    // encarga de eso (migración 0063). Se emparejan por índice antes de juntar
+    // las dos listas, porque después ya no se sabría cuál era de quién.
+    const par = (
+      nombres: readonly string[] | null,
+      fotos: readonly (string | null)[] | null,
+    ) => (nombres ?? []).filter(Boolean).map((n, i) => ({ nombre: n, foto: fotos?.[i] ?? null }));
+
+    return [...par(this.goingNames(), this.goingAvatars()),
+            ...par(this.interestedNames(), this.interestedAvatars())].slice(0, 3);
   });
 
   readonly linea = computed(() => {

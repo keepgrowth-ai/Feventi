@@ -112,6 +112,8 @@ import {
               [interested]="sn.friends_interested"
               [goingNames]="sn.going_names"
               [interestedNames]="sn.interested_names"
+              [goingAvatars]="sn.going_avatars"
+              [interestedAvatars]="sn.interested_avatars"
               [conNota]="true"
             />
           </section>

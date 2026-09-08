@@ -1102,6 +1102,9 @@ export type Database = {
           /** Hasta dos nombres de PILA. El resto lo cuenta el número (D-46). */
           going_names: string[] | null;
           interested_names: string[] | null;
+          /** En el MISMO orden que los nombres: el componente los empareja. */
+          going_avatars: string[] | null;
+          interested_avatars: string[] | null;
         };
         Relationships: [];
       };

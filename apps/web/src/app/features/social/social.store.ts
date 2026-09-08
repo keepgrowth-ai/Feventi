@@ -24,6 +24,9 @@ export interface EventSignal {
   /** Hasta dos nombres de pila (D-46). Null si no llegan; la señal aguanta. */
   readonly going_names: readonly string[] | null;
   readonly interested_names: readonly string[] | null;
+  /** En el MISMO orden que los nombres. */
+  readonly going_avatars: readonly (string | null)[] | null;
+  readonly interested_avatars: readonly (string | null)[] | null;
 }
 
 export interface BlockedUser {

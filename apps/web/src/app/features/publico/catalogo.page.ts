@@ -208,6 +208,10 @@ import {
                   [interested]="sn.friends_interested"
                   [goingNames]="sn.going_names"
                   [interestedNames]="sn.interested_names"
+                  [goingAvatars]="sn.going_avatars"
+                  [interestedAvatars]="sn.interested_avatars"
+              [goingAvatars]="sn.going_avatars"
+              [interestedAvatars]="sn.interested_avatars"
                 />
               </div>
             }
@@ -270,6 +274,10 @@ import {
         </button>
       </div>
     }
+
+    <p class="mt-8 text-[11.5px] text-fg-subtle">
+      <a routerLink="/creditos" class="underline">Créditos de las imágenes</a>
+    </p>
   `,
 })
 export class CatalogoPage {
