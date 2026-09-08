@@ -3,30 +3,56 @@ import { Component, ChangeDetectionStrategy, computed, input } from '@angular/co
 /**
  * La señal social. Aparece en la tarjeta del catálogo y en la ficha del evento.
  *
- *     Diego ya tiene entrada · Valeria quiere ir
- *     Solo ves señales de quienes no están en modo ninja.
+ *     (D)(V)  Diego y Valeria quieren ir
+ *             Solo ves señales de quienes no están en modo ninja.
  *
- * **Dice nombres, no números** (D-46). El mockup enseñaba «2 amigos quieren
- * ir», y así estuvo hasta que el acta dejó claro que la app tiene que SENTIRSE
- * como una red social: «2 amigos quieren ir» es un dato; «Diego y Valeria
- * quieren ir» es una razón para ir.
+ * **Por qué avatares y no solo texto.** «Diego y Valeria quieren ir» escrito a
+ * secas es la lectura de una base de datos. Dos círculos con sus iniciales
+ * delante es una red social, y se entiende antes de leer la frase. Es el
+ * diferencial del producto: merece ser un objeto, no un renglón.
  *
- * Nombre de pila, no completo. «Diego Salazar y Valeria Ríos ya tienen entrada»
- * es una notificación de banco.
+ * El color de cada avatar sale de los **mismos seis gradientes** que el
+ * catálogo usa para un evento sin imagen, elegidos por el nombre. Así una
+ * persona y un cartel hablan el mismo idioma visual, y dos personas distintas
+ * salen siempre del mismo color — que es lo que hace que se reconozcan de una
+ * tarjeta a otra sin leer.
  *
- * Vive en `shared/ui` porque aparece en dos sitios y dos copias del mismo texto
- * acaban divergiendo. La segunda línea es tan importante como la primera: sin
- * ella, un conteo bajo se lee como «a nadie le interesa» en vez de «alguien se
- * escondió».
+ * **Dice nombres, no números** (D-46). «2 amigos quieren ir» es un dato;
+ * «Diego y Valeria quieren ir» es una razón para ir. Nombre de pila: el
+ * apellido convierte la frase en una notificación de banco.
+ *
+ * La segunda línea es tan importante como la primera. Sin ella, un conteo bajo
+ * se lee como «a nadie le interesa» en vez de «alguien se escondió».
  */
 @Component({
   selector: 'fv-social-signal',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     @if (hay()) {
-      <p class="text-[12.5px] font-semibold leading-snug text-violet">{{ linea() }}</p>
+      <div class="fv-anim-llega flex items-center gap-2">
+        @if (caras().length) {
+          <!-- Se solapan a propósito: es la forma de decir «un grupo» sin
+               escribirlo, y ocupa menos que ponerlos en fila. -->
+          <span class="flex shrink-0 -space-x-1.5" aria-hidden="true">
+            @for (c of caras(); track c.inicial; let i = $index) {
+              <span
+                class="fv-anim-llega grid size-6 place-items-center rounded-full text-[10px] font-bold text-white ring-2 ring-surface"
+                [class]="c.grad"
+                [style.animation-delay.ms]="80 + i * 70"
+              >
+                {{ c.inicial }}
+              </span>
+            }
+          </span>
+        }
+
+        <p class="text-[12.5px] font-semibold leading-snug text-info-fg">
+          {{ linea() }}
+        </p>
+      </div>
+
       @if (conNota()) {
-        <p class="mt-0.5 text-[11px] text-fg-muted">
+        <p class="fv-anim-llega mt-1 text-[11px] text-fg-muted" style="animation-delay:260ms">
           Solo ves señales de quienes no están en modo ninja.
         </p>
       }
@@ -43,6 +69,20 @@ export class SocialSignal {
   readonly conNota = input(false);
 
   readonly hay = computed(() => this.going() > 0 || this.interested() > 0);
+
+  /**
+   * Los que van primero: tener la entrada pesa más que quererla, y si solo
+   * caben tres caras que sean las de quien ya pagó.
+   */
+  readonly caras = computed(() => {
+    const nombres = [...(this.goingNames() ?? []), ...(this.interestedNames() ?? [])]
+      .filter(Boolean)
+      .slice(0, 3);
+    return nombres.map((n) => ({
+      inicial: n.trim().charAt(0).toUpperCase(),
+      grad: 'fv-grad-' + this.indiceGradiente(n),
+    }));
+  });
 
   readonly linea = computed(() => {
     const partes: string[] = [];
@@ -78,5 +118,12 @@ export class SocialSignal {
     else quien = n.slice(0, -1).join(', ') + ' y ' + n[n.length - 1];
 
     return quien + ' ' + verbo;
+  }
+
+  /** Mismo nombre, mismo color, siempre. Sin esto los avatares parpadean. */
+  private indiceGradiente(nombre: string): number {
+    let h = 0;
+    for (const ch of nombre) h = (h * 31 + ch.charCodeAt(0)) % 6;
+    return h;
   }
 }

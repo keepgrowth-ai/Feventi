@@ -63,7 +63,7 @@ import { AuthStore } from '../../core/auth.store';
         <button
           type="button"
           (click)="toggleMode()"
-          class="w-full py-1 text-[12.5px] font-semibold text-coral"
+          class="w-full py-1 text-[12.5px] font-semibold text-coral-fg"
         >
           {{ mode() === 'password' ? 'Prefiero un enlace por correo' : 'Usar mi contraseña' }}
         </button>
@@ -71,7 +71,7 @@ import { AuthStore } from '../../core/auth.store';
 
       <p class="mt-6 text-center text-[13px] text-fg-muted">
         ¿No tienes cuenta?
-        <a routerLink="/registro" class="font-semibold text-coral">Crear una</a>
+        <a routerLink="/registro" class="font-semibold text-coral-fg">Crear una</a>
       </p>
     </div>
   `,

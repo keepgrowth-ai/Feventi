@@ -104,9 +104,9 @@ import { EVENT_STATUS, type EventStatus } from '../eventos/event-status';
             @if (copy(ev.status).selling || ev.status === 'paused' || ev.status === 'finished') {
               <a
                 [routerLink]="['/organizador/eventos', ev.id, 'panel']"
-                class="mt-1 inline-block text-[12.5px] font-semibold text-violet"
+                class="mt-1 inline-block text-[12.5px] font-semibold text-info-fg"
               >
-                Ver ventas y accesos →
+                Ver ventas y accesos
               </a>
             }
           }

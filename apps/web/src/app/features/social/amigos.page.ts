@@ -38,7 +38,7 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
     <!-- ── Solicitudes · solo si hay ─────────────────────────────────────── -->
     @if (solicitudes().length) {
       <section class="mb-6">
-        <h2 class="mb-2 text-[12px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+        <h2 class="mb-2 text-[12px] font-bold text-fg-muted">
           Solicitudes recibidas
         </h2>
         <ul class="space-y-2">
@@ -48,7 +48,7 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
             >
               <div class="flex min-w-0 items-center gap-3">
                 <span
-                  class="grid size-9 shrink-0 place-items-center rounded-full bg-violet/15 text-[13px] font-bold text-violet"
+                  class="grid size-9 shrink-0 place-items-center rounded-full bg-violet/15 text-[13px] font-bold text-info-fg"
                 >
                   {{ inicial(s.full_name) }}
                 </span>
@@ -78,7 +78,7 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
 
     <!-- ── Mis amigos ────────────────────────────────────────────────────── -->
     <section class="mb-6">
-      <h2 class="mb-2 text-[12px] font-bold uppercase tracking-[0.08em] text-fg-muted">
+      <h2 class="mb-2 text-[12px] font-bold text-fg-muted">
         Mis amigos
       </h2>
       <ul class="space-y-2">
@@ -88,7 +88,7 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
           >
             <div class="flex min-w-0 items-center gap-3">
               <span
-                class="grid size-9 shrink-0 place-items-center rounded-full bg-turquoise/15 text-[13px] font-bold text-turquoise"
+                class="grid size-9 shrink-0 place-items-center rounded-full bg-turquoise/15 text-[13px] font-bold text-success-fg"
               >
                 {{ inicial(a.full_name) }}
               </span>
@@ -145,15 +145,23 @@ import { SocialStore, type Friend, type FriendRequest } from './social.store';
       </form>
 
       @if (resultado(); as r) {
-        <p class="mt-2.5 rounded-[--radius-chip] bg-ok-bg px-3 py-2 text-[12.5px] text-ok-fg">
+        <p class="mt-2.5 rounded-[--radius-chip] bg-success-bg px-3 py-2 text-[12.5px] text-success-fg">
           {{ r }}
         </p>
       }
     </section>
 
-    <p class="mt-5 text-[12.5px] text-fg-muted">
+    @if (amigos().length) {
+      <p class="mt-4 text-[13px] text-fg-muted">
+        Con ellos puedes
+        <a routerLink="/grupos" class="font-semibold text-info-fg">comprar en grupo</a>:
+        una sola compra, y la entrada de cada uno en su propia wallet.
+      </p>
+    }
+
+    <p class="mt-4 text-[12.5px] text-fg-muted">
       ¿Prefieres que nadie vea a qué eventos vas?
-      <a routerLink="/perfil" class="font-semibold text-violet">Activa el modo ninja</a>.
+      <a routerLink="/perfil" class="font-semibold text-info-fg">Activa el modo ninja</a>.
     </p>
   `,
 })

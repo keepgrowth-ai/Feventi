@@ -34,7 +34,7 @@ type ChecklistState = 'ok' | 'pending' | 'na';
   imports: [FormsModule, RouterLink, Chip],
   template: `
     @if (ev(); as e) {
-      <a routerLink="/admin/solicitudes" class="text-[12.5px] font-semibold text-coral"
+      <a routerLink="/admin/solicitudes" class="text-[12.5px] font-semibold text-coral-fg"
         >← Solicitudes</a
       >
 

@@ -31,7 +31,7 @@ import { KINDS, SupportStore, type CaseContext, type SupportKind } from '../../f
       <button
         type="button"
         (click)="abrir()"
-        class="text-[12.5px] font-semibold text-violet underline underline-offset-2"
+        class="text-[12.5px] font-semibold text-info-fg underline underline-offset-2"
       >
         {{ etiqueta() }}
       </button>

@@ -334,7 +334,7 @@ import { CheckoutStore, mmss, secondsLeft, type OrderWithItems } from './checkou
         <p class="mt-2 text-[13.5px] text-fg-muted">
           Puede que el enlace esté mal o que la orden sea de otra cuenta.
         </p>
-        <a routerLink="/eventos" class="mt-4 inline-block text-[13px] font-semibold text-coral">
+        <a routerLink="/eventos" class="mt-4 inline-block text-[13px] font-semibold text-coral-fg">
           Ver eventos
         </a>
       </div>

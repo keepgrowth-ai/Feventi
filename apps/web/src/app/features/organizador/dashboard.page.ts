@@ -153,7 +153,7 @@ import {
                 class="flex justify-between gap-3 border-t border-border pt-2.5 text-[15px] font-black"
               >
                 <dt>Neto estimado a liquidar</dt>
-                <dd class="tabular-nums text-turquoise">{{ money(s.net_estimated_cents) }}</dd>
+                <dd class="tabular-nums text-success-fg">{{ money(s.net_estimated_cents) }}</dd>
               </div>
             </dl>
 
@@ -209,7 +209,7 @@ import {
                   @for (g of puertas(); track g.gate) {
                     <tr class="border-b border-border last:border-0">
                       <td class="py-2 font-semibold">{{ g.gate }}</td>
-                      <td class="py-2 text-right tabular-nums text-turquoise">{{ g.allowed }}</td>
+                      <td class="py-2 text-right tabular-nums text-success-fg">{{ g.allowed }}</td>
                       <td class="py-2 text-right tabular-nums">{{ g.manual_review }}</td>
                       <td class="py-2 text-right tabular-nums">{{ g.denied + g.already_used }}</td>
                       <td class="py-2 text-right tabular-nums">{{ g.screenshots }}</td>

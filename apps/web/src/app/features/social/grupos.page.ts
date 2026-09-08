@@ -70,7 +70,7 @@ interface Fila {
             >
               <span class="font-semibold">{{ nombre(m.user_id) }}</span>
               @if (m.slot === 1) {
-                <span class="text-[10.5px] uppercase tracking-[0.06em] text-fg-muted">paga</span>
+                <span class="text-[10.5px] text-fg-muted">paga</span>
               }
             </li>
           }
@@ -96,7 +96,7 @@ interface Fila {
               } @else {
                 <p class="text-[12.5px] text-fg-muted">
                   No te quedan amigos por añadir.
-                  <a routerLink="/amigos" class="font-semibold text-violet">Añade más</a>.
+                  <a routerLink="/amigos" class="font-semibold text-info-fg">Añade más</a>.
                 </p>
               }
             </div>
@@ -134,7 +134,7 @@ interface Fila {
         }
 
         @if (f.grupo.status === 'completed') {
-          <p class="mt-3 rounded-[--radius-chip] bg-ok-bg px-3 py-2 text-[12.5px] text-ok-fg">
+          <p class="mt-3 rounded-[--radius-chip] bg-success-bg px-3 py-2 text-[12.5px] text-success-fg">
             Pagado. Cada uno tiene su entrada en
             <a routerLink="/entradas" class="font-semibold underline">su wallet</a>.
           </p>

@@ -30,7 +30,7 @@ type ZoneWithSegments = Zone & { zone_segments: ZoneSegment[] };
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, RouterLink, Chip],
   template: `
-    <a [routerLink]="['/organizador/eventos', id()]" class="text-[12.5px] font-semibold text-coral"
+    <a [routerLink]="['/organizador/eventos', id()]" class="text-[12.5px] font-semibold text-coral-fg"
       >← Volver al evento</a
     >
 

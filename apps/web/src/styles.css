@@ -14,6 +14,14 @@
   --color-coral-200: #ff8fa3;
   --color-violet-200: #c0b6ff;
 
+  /* Coral legible como TEXTO sobre blanco.
+     El design-system lo dice y no había token para cumplirlo: los hex de marca
+     son para superficie y acento, no para texto — #ff4d6d sobre blanco da 3.0
+     de contraste y AA pide 4.5. Este da 6.5.
+     Coincide con `danger-fg` porque el color de acción de la marca ES coral;
+     tiene nombre propio para que un enlace no acabe marcado como «peligro». */
+  --color-coral-fg: #c9203f;
+
   /* ── Neutrales (escala Zinc) ───────────────────────────────────────── */
   --color-bg: #fafafa;
   --color-surface: #ffffff;
@@ -55,6 +63,29 @@
      código de ticket, código de solicitud, número de caso, reloj de puerta. */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* ── Movimiento ────────────────────────────────────────────────────────
+     El design-system no dice nada de animación porque el mockup es estático.
+     Estos tokens son la decisión que faltaba, y la regla es una sola:
+
+         SOLO SE MUEVE LO QUE CAMBIÓ.
+
+     Nada de entradas con desvanecido en cada sección ni transiciones de hover
+     en cada tarjeta: eso no informa de nada y hace que el producto parezca
+     hecho por defecto. Tres motivos válidos y ninguno más — que llegue un dato
+     que no estaba, que alguien haya pulsado algo, o que el tiempo sea la
+     información (la cuenta atrás del QR).
+
+     `--ease-arrival` es la curva de algo que entra y se asienta.
+     `--ease-verdict` pasa de largo un 6 % y vuelve. Se usa EN UN SOLO SITIO:
+     el veredicto de puerta, que es el único momento del producto en el que el
+     sistema emite un juicio delante de una cola de gente. */
+  --ease-arrival: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-verdict: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --dur-fast: 160ms;   /* cambio de estado de un control */
+  --dur-base: 260ms;   /* algo aparece o desaparece */
+  --dur-slow: 420ms;   /* el veredicto, y solo él */
 
   /* ── Radios ───────────────────────────────────────────────────────────── */
   --radius-chip: 0.5rem;
@@ -105,6 +136,63 @@ body {
 :where(a, button, input, select, textarea, [tabindex]):focus-visible {
   outline: 2px solid var(--color-coral);
   outline-offset: 2px;
+}
+
+/* ── Las animaciones ────────────────────────────────────────────────────────
+   Cada una existe porque algo cambió, y el comentario dice qué. */
+
+/* La señal social llega DESPUÉS de que la tarjeta esté pintada: es una segunda
+   consulta, no un adorno de carga. Por eso se le nota la llegada — y por eso
+   los avatares entran escalonados, como llega una lista de gente. */
+@keyframes fv-llega {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: none; }
+}
+
+/* El veredicto de puerta. Se pasa y vuelve: aterriza. */
+@keyframes fv-veredicto {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* «YA UTILIZADO» no entra igual que «PERMITIDO». Un rechazo que aparece con la
+   misma suavidad que una aprobación se lee como una aprobación durante el
+   cuarto de segundo que el portero tarda en leer la palabra — y en una cola,
+   ese cuarto de segundo es la persona que ya pasó. */
+@keyframes fv-rechazo {
+  0%       { opacity: 0; transform: scale(0.94) translateX(0); }
+  55%      { opacity: 1; transform: scale(1) translateX(-7px); }
+  72%      { transform: translateX(6px); }
+  86%      { transform: translateX(-3px); }
+  100%     { transform: translateX(0); }
+}
+
+/* El QR y su cuenta atrás: la barra se vacía de forma continua en vez de dar
+   saltos de un segundo. La información es la misma; la lectura, no. */
+@keyframes fv-pulso-suave {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.55; }
+}
+
+@layer utilities {
+  .fv-anim-llega     { animation: fv-llega var(--dur-base) var(--ease-arrival) both; }
+  .fv-anim-veredicto { animation: fv-veredicto var(--dur-slow) var(--ease-verdict) both; }
+  .fv-anim-rechazo   { animation: fv-rechazo var(--dur-slow) var(--ease-arrival) both; }
+  .fv-anim-pulso     { animation: fv-pulso-suave 1.6s ease-in-out infinite; }
+}
+
+/* Respetar a quien pidió menos movimiento. No se desactiva la animación
+   dejándola en 0s —eso salta el `both` y deja elementos en su estado inicial,
+   invisibles— sino comprimiéndola a un instante. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
 }
 
 /* Modo Puerta (Art. 10): nada por debajo de 16px, y el veredicto manda. */

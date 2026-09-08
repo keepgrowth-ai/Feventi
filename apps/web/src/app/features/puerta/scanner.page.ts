@@ -81,7 +81,7 @@ type Panel = 'scanner' | 'dni' | 'historial';
         @if (stats(); as s) {
           <div class="mt-4 grid grid-cols-4 gap-2">
             <div class="rounded-[--radius-inner] bg-success-fg/15 px-2 py-2 text-center">
-              <p class="text-2xl font-black text-turquoise">{{ s.allowed }}</p>
+              <p class="text-2xl font-black text-success-fg">{{ s.allowed }}</p>
               <p class="text-base text-white/60">validadas</p>
             </div>
             <div class="rounded-[--radius-inner] bg-warn-fg/15 px-2 py-2 text-center">
@@ -89,7 +89,7 @@ type Panel = 'scanner' | 'dni' | 'historial';
               <p class="text-base text-white/60">revisión</p>
             </div>
             <div class="rounded-[--radius-inner] bg-danger-fg/15 px-2 py-2 text-center">
-              <p class="text-2xl font-black text-coral">{{ s.denied + s.already_used }}</p>
+              <p class="text-2xl font-black text-coral-200">{{ s.denied + s.already_used }}</p>
               <p class="text-base text-white/60">rechazos</p>
             </div>
             <div class="rounded-[--radius-inner] bg-white/10 px-2 py-2 text-center">
@@ -149,7 +149,7 @@ type Panel = 'scanner' | 'dni' | 'historial';
                         Validar
                       </button>
                     } @else {
-                      <span class="shrink-0 text-base font-bold text-coral">{{ m.status }}</span>
+                      <span class="shrink-0 text-base font-bold text-coral-200">{{ m.status }}</span>
                     }
                   </div>
                 </li>
@@ -226,14 +226,23 @@ type Panel = 'scanner' | 'dni' | 'historial';
 
     <!-- ── El veredicto ─────────────────────────────────────────────────── -->
     @if (veredicto(); as v) {
+      <!-- El veredicto ATERRIZA. Un rechazo que aparece con la misma suavidad
+           que una aprobación se lee como una aprobación durante el cuarto de
+           segundo que el portero tarda en leer la palabra — y en una cola, ese
+           cuarto de segundo es la persona que ya pasó. -->
       <div
         class="fixed inset-0 z-50 flex flex-col justify-between p-5 text-white"
-        [class]="copy(v).clase"
+        [class]="copy(v).clase + ' ' + entrada(v)"
         role="alert"
         (click)="cerrarSiEsManual(v)"
       >
         <div class="pt-10 text-center">
-          <p class="text-[64px] leading-none font-black">{{ copy(v).icono }}</p>
+          <p
+            class="fv-anim-veredicto text-[64px] leading-none font-black"
+            style="animation-delay:90ms"
+          >
+            {{ copy(v).icono }}
+          </p>
           <!-- AC-27: 34 px o más, ancho completo -->
           <h2 class="mt-3 text-[34px] leading-[1.05] font-black tracking-[-1px]">
             {{ copy(v).titulo }}
@@ -422,6 +431,18 @@ export class GateScannerPage implements OnDestroy {
         denied: 'Acceso denegado',
       }[c.result] + (c.result === 'allowed' ? '' : ` · ${MOTIVO[c.reason] ?? c.reason}`)
     );
+  }
+
+  /**
+   * Permitido y revisión manual entran asentándose; lo que se rechaza entra
+   * negando con la cabeza. Es la única animación del producto que distingue un
+   * caso de otro, y lo hace porque el portero tiene que saber el resultado
+   * antes de terminar de leer la palabra.
+   */
+  protected entrada(v: Verdict): string {
+    return v.result === 'allowed' || v.result === 'manual_review'
+      ? 'fv-anim-veredicto'
+      : 'fv-anim-rechazo';
   }
 
   protected punto(r: string): string {

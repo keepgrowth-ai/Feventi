@@ -1,5 +1,6 @@
 import { Component, ChangeDetectionStrategy, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { AuthStore } from '../../core/auth.store';
 import { SocialStore, type BlockedUser } from './social.store';
 
 /**
@@ -99,7 +100,7 @@ import { SocialStore, type BlockedUser } from './social.store';
             <button
               type="button"
               (click)="desbloquear(b.blocked_id)"
-              class="shrink-0 text-[12.5px] font-semibold text-violet"
+              class="shrink-0 text-[12.5px] font-semibold text-info-fg"
             >
               Desbloquear
             </button>
@@ -110,13 +111,36 @@ import { SocialStore, type BlockedUser } from './social.store';
       </ul>
     </section>
 
-    <p class="mt-5 text-[12.5px] text-fg-muted">
-      <a routerLink="/amigos" class="font-semibold text-violet">Ver mis amigos</a>
-    </p>
+    <!-- Lo que salió de la barra de navegación al reducirla a cuatro destinos.
+         Aquí es donde alguien busca sus cosas administrativas. -->
+    <section class="mt-5 overflow-hidden rounded-[--radius-card] border border-border bg-surface">
+      <a
+        routerLink="/grupos"
+        class="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 text-[14px] font-medium"
+      >
+        Mis grupos de compra
+        <span class="text-fg-subtle" aria-hidden="true">›</span>
+      </a>
+      <a
+        routerLink="/soporte"
+        class="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5 text-[14px] font-medium"
+      >
+        Mis casos de soporte
+        <span class="text-fg-subtle" aria-hidden="true">›</span>
+      </a>
+      <button
+        type="button"
+        (click)="auth.signOut()"
+        class="flex w-full items-center justify-between gap-3 px-4 py-3.5 text-left text-[14px] font-medium text-danger-fg"
+      >
+        Cerrar sesión
+      </button>
+    </section>
   `,
 })
 export class PerfilPage {
   readonly store = inject(SocialStore);
+  protected readonly auth = inject(AuthStore);
 
   readonly yo = signal<Awaited<ReturnType<SocialStore['me']>>>(null);
   readonly ninja = signal(false);

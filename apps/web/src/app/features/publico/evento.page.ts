@@ -83,45 +83,59 @@ import {
       </section>
 
       <!-- ── 011 · la señal social ────────────────────────────────────────
-           Va justo debajo del key visual y encima del precio: el acta §6 dice
-           que la señal debe llegar ANTES de la decisión de compra, no como
-           confirmación después. Si no hay señal, no ocupa nada. -->
+           Va justo debajo del key visual y ENCIMA del precio: el acta §6 dice
+           que la señal debe llegar antes de la decisión de compra, no como
+           confirmación después.
+
+           Y va SOLA, en su propia caja. Antes compartía fila con los dos
+           botones y competía con ellos por la atención; el diferencial del
+           producto no puede leerse como el pie de foto de un botón. Los
+           botones bajan una línea, que es su orden real: primero te enteras de
+           que tus amigos van, después decides qué haces con eso.
+
+           Si no hay señal, la caja no existe. -->
       @if (auth.isSignedIn()) {
-        <section class="mt-4 flex flex-wrap items-center justify-between gap-3">
-          <div>
+        @if (senal(); as sn) {
+          <section
+            class="mt-4 rounded-[--radius-card] border border-info-border/40 bg-info-bg px-4 py-3"
+          >
             <fv-social-signal
-              [going]="senal()?.friends_going ?? 0"
-              [interested]="senal()?.friends_interested ?? 0"
-              [goingNames]="senal()?.going_names ?? null"
-              [interestedNames]="senal()?.interested_names ?? null"
+              [going]="sn.friends_going"
+              [interested]="sn.friends_interested"
+              [goingNames]="sn.going_names"
+              [interestedNames]="sn.interested_names"
               [conNota]="true"
             />
-          </div>
+          </section>
+        }
 
-          <div class="flex shrink-0 flex-wrap gap-2">
-          <!-- 012 · Art. 11. Solo con amigos: sin grafo no hay grupo, y decirlo
-               aqui evita que alguien lo pulse y encuentre una lista vacia. -->
+        <div class="mt-3 flex flex-wrap gap-2">
+          <!-- Solo con amigos: sin grafo no hay grupo. -->
           <button
             type="button"
             (click)="crearGrupo()"
-            class="min-h-10 rounded-[--radius-chip] border border-violet px-4 text-[13px] font-semibold text-violet"
+            class="min-h-11 rounded-[--radius-inner] border border-info-border px-4 text-[13.5px] font-semibold text-info-fg"
           >
             Comprar con amigos
           </button>
+
+          <!-- El botón cambia de estado al pulsarlo, y la transición muestra
+               ese cambio. Es movimiento que responde a una acción: el único
+               que este producto se permite fuera de los dos momentos grandes. -->
           <button
             type="button"
             (click)="alternarInteres()"
-            class="min-h-10 shrink-0 rounded-[--radius-chip] border px-4 text-[13px] font-semibold"
+            [attr.aria-pressed]="meInteresa()"
+            class="min-h-11 rounded-[--radius-inner] border px-4 text-[13.5px] font-semibold transition-colors duration-[--dur-fast]"
             [class]="
               meInteresa()
-                ? 'border-violet bg-violet/10 text-violet'
+                ? 'border-info-border bg-info-bg-alt text-info-fg'
                 : 'border-border text-fg-soft'
             "
           >
             {{ meInteresa() ? 'Te interesa' : 'Me interesa' }}
           </button>
-          </div>
-        </section>
+        </div>
       }
 
       <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_320px]">
@@ -341,7 +355,7 @@ import {
           Puede que el enlace esté mal, que el evento no esté publicado o que la venta se haya
           cerrado.
         </p>
-        <a routerLink="/" class="mt-4 inline-block text-[13px] font-semibold text-coral">
+        <a routerLink="/" class="mt-4 inline-block text-[13px] font-semibold text-coral-fg">
           Ver otros eventos
         </a>
       </div>

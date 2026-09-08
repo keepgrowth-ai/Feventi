@@ -63,7 +63,7 @@ import {
             <button
               type="button"
               (click)="abrir(c)"
-              class="shrink-0 text-[12.5px] font-semibold text-violet"
+              class="shrink-0 text-[12.5px] font-semibold text-info-fg"
             >
               {{ abiertoId() === c.id ? 'Ocultar' : 'Ver conversación' }}
             </button>

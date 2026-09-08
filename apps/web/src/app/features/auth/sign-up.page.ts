@@ -75,7 +75,7 @@ import { AuthStore } from '../../core/auth.store';
       </form>
 
       <p class="mt-6 text-center text-[13px] text-fg-muted">
-        ¿Ya tienes cuenta? <a routerLink="/entrar" class="font-semibold text-coral">Entrar</a>
+        ¿Ya tienes cuenta? <a routerLink="/entrar" class="font-semibold text-coral-fg">Entrar</a>
       </p>
     </div>
   `,

@@ -8,6 +8,7 @@ import {
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Chip } from '../../shared/ui/chip';
+import { CountUp } from '../../shared/ui/count-up';
 import { SupportButton } from '../../shared/ui/support-button';
 import { TicketQr } from '../../shared/ui/ticket-qr';
 import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.store';
@@ -28,7 +29,7 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
 @Component({
   selector: 'fv-wallet',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, Chip, SupportButton, TicketQr],
+  imports: [RouterLink, Chip, SupportButton, TicketQr, CountUp],
   template: `
     <header class="mb-5 flex flex-wrap items-start justify-between gap-4">
       <div>
@@ -42,11 +43,11 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
       <!-- 013 · mockup L338. Cero NO se pinta: «0 puntos» le dice al fan que la
            función existe y que él no la ha usado, que es la peor combinación. -->
       @if (puntos() > 0) {
-        <div class="rounded-[--radius-card] bg-violet/10 px-4 py-2.5 text-right">
-          <p class="text-xl font-black tabular-nums text-violet">{{ puntos() }}</p>
-          <p class="text-[11px] font-semibold uppercase tracking-[0.06em] text-fg-muted">
-            puntos
+        <div class="rounded-[--radius-card] bg-info-bg px-4 py-2.5 text-right">
+          <p class="text-xl font-black text-info-fg">
+            <fv-count-up [value]="puntos()" />
           </p>
+          <p class="text-[11px] font-semibold text-fg-muted">puntos</p>
         </div>
       }
     </header>
@@ -63,7 +64,7 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
         <div class="bg-navy px-4 py-3 text-white">
           <div class="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <p class="text-[11px] uppercase tracking-wide text-white/60">Próxima entrada</p>
+              <p class="text-[11px] text-white/60">Próxima entrada</p>
               <p class="text-[15px] font-bold">{{ t.event_title }}</p>
             </div>
             <fv-chip [tone]="copy(t).tone">{{ copy(t).chip }}</fv-chip>
@@ -163,7 +164,7 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
     <!-- Las demás -->
     @if (otras().length) {
       <section class="mb-6">
-        <h2 class="mb-2 text-[12px] font-bold uppercase tracking-wide text-fg-muted">
+        <h2 class="mb-2 text-[12px] font-bold text-fg-muted">
           Otras entradas
         </h2>
         <ul class="space-y-2">
@@ -200,7 +201,7 @@ import { WalletStore, qrCopy, type QrToken, type WalletTicket } from './wallet.s
     <!-- Pasadas -->
     @if (pasadas().length) {
       <section>
-        <h2 class="mb-2 text-[12px] font-bold uppercase tracking-wide text-fg-muted">
+        <h2 class="mb-2 text-[12px] font-bold text-fg-muted">
           Entradas pasadas
         </h2>
         <ul class="space-y-2">
