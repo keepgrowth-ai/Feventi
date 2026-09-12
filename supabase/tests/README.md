@@ -44,6 +44,7 @@ su propio bloque:
 | 011 | `b1000000-0000-4000-8000-…` | `20511000001` |
 | 012 | `b2000000-0000-4000-8000-…` | `20512000001` |
 | 013 | `b3000000-0000-4000-8000-…` | `20513000001` |
+| 016 | `b6400000-0000-4000-8000-…` | `20564000001` |
 
 Lo destapó 003 al chocar con el RUC de «Andes Live SAC», que puso
 `demo_kpop.sql`. Una suite que solo pasa contra una base recién creada no sirve

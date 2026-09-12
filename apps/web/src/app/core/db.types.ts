@@ -1208,6 +1208,11 @@ export type Database = {
        * enseña ese mismo texto también en el éxito: distinguirlos convertiría
        * el formulario en un oráculo de «¿está esta persona registrada?».
        */
+      /**
+       * Utilería de grabación (0064). Tres cierres: solo Admin, solo ids
+       * escritos a mano, y se apaga sola con el primer pago no-sandbox.
+       */
+      reset_demo: { Args: Record<PropertyKey, never>; Returns: Json };
       /** 012 · Art. 11. Devuelve el id del grupo; el creador entra como slot 1. */
       create_purchase_group: { Args: { p_event_id: string }; Returns: string };
       /** Solo el creador, y solo a un amigo: `private.are_friends` lo comprueba. */

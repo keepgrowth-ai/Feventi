@@ -43,6 +43,16 @@ export const routes: Routes = [
       // que mostrar, es una pantalla que se diseña dos veces.
       { path: '', pathMatch: 'full', redirectTo: 'eventos' },
 
+      // Utilería de grabación, NO enlazada desde ningún menú: si apareciera,
+      // alguien preguntaría qué hace ese botón en medio de la presentación.
+      // Esconderla no es lo que la protege — lo que la protege es que
+      // `reset_demo()` exige Admin, solo toca ids escritos a mano y se apaga
+      // sola con el primer pago real (migración 0064).
+      {
+        path: 'demo',
+        canActivate: [authGuard],
+        loadComponent: () => import('./features/demo/reset.page').then((m) => m.DemoResetPage),
+      },
       {
         path: 'creditos',
         loadComponent: () =>
